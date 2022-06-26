@@ -1,6 +1,12 @@
 <resources>
-    <string name="app_name">contact_tracing</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="app_name">ContactTracing</string>
+    <string name="banner_infection_risk_title">Risco de contágio</string>
+    <string name="banner_infection_risk_subtitle">Uma pessoa com quem teve contato nos últimos 14 dias foi diagnosticada com covid-19. A recomendação é procurar o centro de testagem mais próximo e fazer isolamento social.</string>
+
+    <string name="main_tracing_active_title">Rastreamento ativado</string>
+    <string name="main_tracing_active_subtitle">Modo detecção de contato ativado. Se alguém com quem teve contato testar positivo, você será notificado. Toque para desativar.</string>
+    <string name="main_tracing_inactive_title">Rastreamento desativado</string>
+    <string name="main_tracing_inactive_subtitle">Modo detecção de contato desativado. Se alguém com quem teve contato testar positivo, você não será notificado. Toque para ativar.</string>
+
+    <string name="notification_subtitle"></string>
 </resources>
