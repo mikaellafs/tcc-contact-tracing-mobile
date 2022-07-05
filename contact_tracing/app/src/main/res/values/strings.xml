@@ -9,4 +9,9 @@
     <string name="main_tracing_inactive_subtitle">Modo detecção de contato desativado. Se alguém com quem teve contato testar positivo, você não será notificado. Toque para ativar.</string>
 
     <string name="notification_subtitle"></string>
+
+    <string name="beacon_service_channel">Beacon Service Channel</string>
+    <string name="beacon_notification_title">Beacon Service</string>
+    <string name="beacon_notification_subtitle">Transmitindo e monitorando beacons</string>
+    <string name="beacon_notification_subtitle_field">subtitle</string>
 </resources>
