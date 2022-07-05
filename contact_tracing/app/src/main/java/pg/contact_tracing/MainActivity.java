@@ -32,6 +32,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        showBanner();
+    }
+
+    private void showBanner() {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.banner, new WarningBanner());
         ft.commit();
