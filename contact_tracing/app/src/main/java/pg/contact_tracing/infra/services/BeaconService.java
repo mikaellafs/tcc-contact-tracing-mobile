@@ -28,6 +28,7 @@ import java.util.Collection;
 
 import pg.contact_tracing.MainActivity;
 import pg.contact_tracing.R;
+import pg.contact_tracing.domain.errors.UserInformationNotFoundException;
 import pg.contact_tracing.domain.usecases.UserContactsUseCase;
 import pg.contact_tracing.domain.usecases.UserInformationsUseCase;
 
@@ -36,18 +37,28 @@ public class BeaconService extends Service {
     public static final String LOG_KEY_TRANSMIT = "BEACON_SERVICE_TRANSMIT";
     public static final String LOG_KEY_MONITOR = "BEACON_SERVICE_MONITOR";
 
-    private UserInformationsUseCase userInformationsUseCase;
     private UserContactsUseCase userContactsUseCase;
+    private UserInformationsUseCase userInformationsUseCase;
+    private String userID;
+    private int appManufacturer;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        userInformationsUseCase = new UserInformationsUseCase();
+        userInformationsUseCase = new UserInformationsUseCase(this);
         userContactsUseCase = new UserContactsUseCase();
+
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        try {
+            userID = userInformationsUseCase.getUUID();
+            appManufacturer = userInformationsUseCase.getAppManufacturer();
+        } catch (UserInformationNotFoundException e) {
+            stopSelf();
+        }
+
         Notification notification = createNotification(intent);
 
         startForeground(1, notification);
@@ -97,10 +108,10 @@ public class BeaconService extends Service {
 
     private void transmitBeacon(){
         Beacon beacon = new Beacon.Builder()
-                .setId1(userInformationsUseCase.getUUID())
+                .setId1(userID)
                 .setId2("1")
                 .setId3("2")
-                .setManufacturer(userInformationsUseCase.getAppManufacturer())
+                .setManufacturer(appManufacturer)
                 .setTxPower(-59)
                 .setDataFields(Arrays.asList(new Long[] {0l})) // Remove this for beacon layouts without d: fields
                 .build();
