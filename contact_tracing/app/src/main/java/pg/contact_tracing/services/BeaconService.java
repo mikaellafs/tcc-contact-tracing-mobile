@@ -1,4 +1,4 @@
-package pg.contact_tracing.infra.services;
+package pg.contact_tracing.services;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -28,14 +28,16 @@ import java.util.Collection;
 
 import pg.contact_tracing.MainActivity;
 import pg.contact_tracing.R;
-import pg.contact_tracing.domain.errors.UserInformationNotFoundException;
-import pg.contact_tracing.domain.usecases.UserContactsUseCase;
-import pg.contact_tracing.domain.usecases.UserInformationsUseCase;
+import pg.contact_tracing.errors.UserInformationNotFoundException;
+import pg.contact_tracing.usecases.UserContactsUseCase;
+import pg.contact_tracing.usecases.UserInformationsUseCase;
 
 public class BeaconService extends Service {
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
     public static final String LOG_KEY_TRANSMIT = "BEACON_SERVICE_TRANSMIT";
     public static final String LOG_KEY_MONITOR = "BEACON_SERVICE_MONITOR";
+
+    public static boolean isRunning;
 
     private UserContactsUseCase userContactsUseCase;
     private UserInformationsUseCase userInformationsUseCase;
@@ -48,6 +50,7 @@ public class BeaconService extends Service {
         userInformationsUseCase = new UserInformationsUseCase(this);
         userContactsUseCase = new UserContactsUseCase();
 
+        BeaconService.isRunning = false;
     }
 
     @Override
@@ -66,6 +69,7 @@ public class BeaconService extends Service {
         transmitBeacon();
         monitorBeacons();
 
+        BeaconService.isRunning = true;
         return START_NOT_STICKY;
     }
 

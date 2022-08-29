@@ -1,24 +1,25 @@
-package pg.contact_tracing.domain.usecases;
+package pg.contact_tracing.repositories;
 
 import android.content.Context;
 
-import pg.contact_tracing.domain.errors.UserInformationNotFoundException;
-import pg.contact_tracing.domain.models.LocalStorageKey;
-import pg.contact_tracing.infra.repositories.LocalStorageRepository;
+import pg.contact_tracing.exceptions.UserInformationNotFoundException;
+import pg.contact_tracing.models.LocalStorageKey;
+import pg.contact_tracing.datasource.local.SharedPreferencesStorage;
 
-public class UserInformationsUseCase {
-    LocalStorageRepository repository;
+public class UserInformationsRepository {
+    SharedPreferencesStorage repository;
 
-    public UserInformationsUseCase(Context context) {
-        repository = new LocalStorageRepository(context, LocalStorageKey.USER_INFO_STORAGE);
+    public UserInformationsRepository(Context context) {
+        repository = new SharedPreferencesStorage(context, LocalStorageKey.USER_INFO_STORAGE);
     }
     public String getUUID() throws UserInformationNotFoundException {
-        String uuid = repository.getValue(LocalStorageKey.USER_UUID);
-
-        if (uuid == "") {
-            throw new UserInformationNotFoundException("Could not find UUID");
-        }
-        return uuid;
+        return "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6";
+//        String uuid = repository.getValue(LocalStorageKey.USER_UUID);
+//
+//        if (uuid == "") {
+//            throw new UserInformationNotFoundException("Could not find UUID");
+//        }
+//        return uuid;
     }
 
     public void saveUUID(String uuid) {
@@ -38,7 +39,7 @@ public class UserInformationsUseCase {
         repository.saveValue(LocalStorageKey.USER_PRIVATE_KEY, key);
     }
 
-    public String getPublicKey() throws  UserInformationNotFoundException {
+    public String getPublicKey() throws UserInformationNotFoundException {
         String pk = repository.getValue(LocalStorageKey.USER_PUBLIC_KEY);
 
         if (pk == "") {

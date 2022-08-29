@@ -1,4 +1,4 @@
-package pg.contact_tracing.presentation.fragments;
+package pg.contact_tracing.ui.fragments;
 
 import android.os.Bundle;
 

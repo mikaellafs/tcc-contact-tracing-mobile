@@ -17,7 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Contact_tracing">
         <service
-            android:name=".infra.services.BeaconService"
+            android:name=".services.BeaconService"
             android:enabled="true"
             android:exported="true">
             <meta-data android:name="longScanForcingEnabled" android:value="true"/>

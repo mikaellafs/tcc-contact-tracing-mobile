@@ -1,4 +1,4 @@
-package pg.contact_tracing.domain.errors;
+package pg.contact_tracing.exceptions;
 
 public class UserInformationNotFoundException extends Exception {
     String message;

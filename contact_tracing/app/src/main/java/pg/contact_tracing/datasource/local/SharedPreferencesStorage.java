@@ -1,14 +1,14 @@
-package pg.contact_tracing.infra.repositories;
+package pg.contact_tracing.datasource.local;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import pg.contact_tracing.domain.models.LocalStorageKey;
+import pg.contact_tracing.models.LocalStorageKey;
 
-public class LocalStorageRepository {
+public class SharedPreferencesStorage {
     SharedPreferences storage;
 
-    public LocalStorageRepository(Context context, LocalStorageKey STORAGE_NAME) {
+    public SharedPreferencesStorage(Context context, LocalStorageKey STORAGE_NAME) {
         storage = context.getSharedPreferences(STORAGE_NAME.toString(), Context.MODE_PRIVATE);
     }
 

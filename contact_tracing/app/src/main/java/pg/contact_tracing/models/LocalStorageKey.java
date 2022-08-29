@@ -1,4 +1,4 @@
-package pg.contact_tracing.domain.models;
+package pg.contact_tracing.models;
 
 public enum LocalStorageKey {
     USER_INFO_STORAGE {
