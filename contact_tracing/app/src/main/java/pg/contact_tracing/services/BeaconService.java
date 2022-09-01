@@ -26,11 +26,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-import pg.contact_tracing.MainActivity;
+import pg.contact_tracing.di.Container;
+import pg.contact_tracing.di.DI;
+import pg.contact_tracing.ui.activities.MainActivity;
 import pg.contact_tracing.R;
-import pg.contact_tracing.errors.UserInformationNotFoundException;
-import pg.contact_tracing.usecases.UserContactsUseCase;
-import pg.contact_tracing.usecases.UserInformationsUseCase;
+import pg.contact_tracing.exceptions.UserInformationNotFoundException;
+import pg.contact_tracing.utils.UserContactsManager;
+import pg.contact_tracing.repositories.UserInformationsRepository;
 
 public class BeaconService extends Service {
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
@@ -39,25 +41,29 @@ public class BeaconService extends Service {
 
     public static boolean isRunning;
 
-    private UserContactsUseCase userContactsUseCase;
-    private UserInformationsUseCase userInformationsUseCase;
+    private UserContactsManager userContactsManager;
+    private UserInformationsRepository userInformationsRepository;
     private String userID;
     private int appManufacturer;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        userInformationsUseCase = new UserInformationsUseCase(this);
-        userContactsUseCase = new UserContactsUseCase();
 
+        try {
+            userInformationsRepository = DI.resolve(UserInformationsRepository.class);
+        } catch (Exception e) {
+
+        }
+        userContactsManager = new UserContactsManager();
         BeaconService.isRunning = false;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         try {
-            userID = userInformationsUseCase.getUUID();
-            appManufacturer = userInformationsUseCase.getAppManufacturer();
+            userID = userInformationsRepository.getUUID();
+            appManufacturer = userInformationsRepository.getAppManufacturer();
         } catch (UserInformationNotFoundException e) {
             stopSelf();
         }
@@ -142,7 +148,7 @@ public class BeaconService extends Service {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 if (beacons.size() > 0) {
-                    userContactsUseCase.saveBeacon(beacons);
+                    userContactsManager.saveBeacon(beacons);
 
                     for (Beacon beacon: beacons) {
                         Log.i(LOG_KEY_MONITOR, "didRangeBeaconsInRegion, beacon = " + beacon.toString());
