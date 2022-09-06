@@ -12,7 +12,7 @@ public class DI {
     public static void registerDependencies(Context context) {
         container = Container.getInstance();
         container.register(UserInformationsRepository.class, new UserInformationsRepository(context));
-        container.register(UserContactsRepository.class, new UserContactsRepository());
+        container.register(UserContactsRepository.class, new UserContactsRepository(context));
     }
 
     public static <T> T resolve(Class<T> type) throws InstanceNotRegisteredDIException {

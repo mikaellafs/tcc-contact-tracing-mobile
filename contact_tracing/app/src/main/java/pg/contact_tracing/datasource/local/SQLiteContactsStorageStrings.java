@@ -9,6 +9,10 @@ public class SQLiteContactsStorageStrings {
     public static String RSSI_COL = "rssi";
     public static String BATTERY_LEVEL_COL = "battery_level";
 
+    public static String[] getColumns() {
+        return new String[]{ID_COL, TOKEN_COL, TIMESTAMP_COL, DISTANCE_COL, RSSI_COL, BATTERY_LEVEL_COL};
+    }
+
     public static String createContactsTable() {
         return "CREATE TABLE " + CONTACTS_TABLE_NAME + " ("
                 + ID_COL + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -17,9 +21,5 @@ public class SQLiteContactsStorageStrings {
                 + DISTANCE_COL + " TEXT,"
                 + RSSI_COL + " TEXT,"
                 + BATTERY_LEVEL_COL + "TEXT)";
-    }
-
-    public static String getContacts() {
-        return "";
     }
 }

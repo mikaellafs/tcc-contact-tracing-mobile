@@ -7,14 +7,14 @@ import pg.contact_tracing.models.LocalStorageKey;
 import pg.contact_tracing.datasource.local.SharedPreferencesStorage;
 
 public class UserInformationsRepository {
-    SharedPreferencesStorage repository;
+    SharedPreferencesStorage storage;
 
     public UserInformationsRepository(Context context) {
-        repository = new SharedPreferencesStorage(context, LocalStorageKey.USER_INFO_STORAGE);
+        storage = new SharedPreferencesStorage(context, LocalStorageKey.USER_INFO_STORAGE);
     }
     public String getUUID() throws UserInformationNotFoundException {
         return "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6";
-//        String uuid = repository.getValue(LocalStorageKey.USER_UUID);
+//        String uuid = storage.getValue(LocalStorageKey.USER_UUID);
 //
 //        if (uuid == "") {
 //            throw new UserInformationNotFoundException("Could not find UUID");
@@ -23,11 +23,11 @@ public class UserInformationsRepository {
     }
 
     public void saveUUID(String uuid) {
-        repository.saveValue(LocalStorageKey.USER_UUID, uuid);
+        storage.saveValue(LocalStorageKey.USER_UUID, uuid);
     }
 
     public String getPrivateKey() throws  UserInformationNotFoundException {
-        String sk = repository.getValue(LocalStorageKey.USER_PRIVATE_KEY);
+        String sk = storage.getValue(LocalStorageKey.USER_PRIVATE_KEY);
 
         if (sk == "") {
             throw new UserInformationNotFoundException("Could not find private key");
@@ -36,11 +36,11 @@ public class UserInformationsRepository {
     }
 
     public void savePrivateKey(String key) {
-        repository.saveValue(LocalStorageKey.USER_PRIVATE_KEY, key);
+        storage.saveValue(LocalStorageKey.USER_PRIVATE_KEY, key);
     }
 
     public String getPublicKey() throws UserInformationNotFoundException {
-        String pk = repository.getValue(LocalStorageKey.USER_PUBLIC_KEY);
+        String pk = storage.getValue(LocalStorageKey.USER_PUBLIC_KEY);
 
         if (pk == "") {
             throw new UserInformationNotFoundException("Could not find public key");
@@ -49,7 +49,7 @@ public class UserInformationsRepository {
     }
 
     public void savePublicKey(String key) {
-        repository.saveValue(LocalStorageKey.USER_PRIVATE_KEY, key);
+        storage.saveValue(LocalStorageKey.USER_PRIVATE_KEY, key);
     }
 
     public int getAppManufacturer() {
@@ -58,6 +58,6 @@ public class UserInformationsRepository {
     }
 
     public void clearInfos() {
-        repository.clearStorage();
+        storage.clearStorage();
     }
 }
