@@ -10,7 +10,7 @@ import pg.contact_tracing.R;
 import pg.contact_tracing.services.BeaconService;
 
 public class BeaconServiceManager {
-    public static final String BEACON_SERVICE_USECASE = "BEACON_SERVICE_USECASE";
+    public static final String BEACON_SERVICE_MANAGER_LOG = "BEACON_SERVICE_MANAGER";
 
     public void start(Context context) {
         Intent serviceIntent = new Intent(context, BeaconService.class);
@@ -21,17 +21,17 @@ public class BeaconServiceManager {
         );
 
         ContextCompat.startForegroundService(context, serviceIntent);
-        Log.i(BEACON_SERVICE_USECASE,"Start service");
+        Log.i(BEACON_SERVICE_MANAGER_LOG,"Start service");
     }
     public void stop(Context context) {
         Intent serviceIntent = new Intent(context, BeaconService.class);
         context.stopService(serviceIntent);
-        Log.i(BEACON_SERVICE_USECASE,"Stop service");
+        Log.i(BEACON_SERVICE_MANAGER_LOG,"Stop service");
     }
 
     public boolean isTracing() {
         boolean isRunning = BeaconService.isRunning;
-        Log.i(BEACON_SERVICE_USECASE,"Service is running: " + isRunning);
+        Log.i(BEACON_SERVICE_MANAGER_LOG,"Service is running: " + isRunning);
 
         return isRunning;
     }
