@@ -19,17 +19,25 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentTransaction;
 
+import java.util.ArrayList;
+
 import pg.contact_tracing.R;
 import pg.contact_tracing.ui.fragments.WarningBanner;
 import pg.contact_tracing.utils.BeaconServiceManager;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String MAIN_ACTIVITY_LOG = "MAIN_ACTIVITY";
     private Switch tracingSwitch;
     private TextView tracingTitle;
     private TextView tracingSubtitle;
     private ImageView tracingImage;
 
     BeaconServiceManager beaconServiceManager;
+
+    private String locationPermission = Manifest.permission.ACCESS_FINE_LOCATION;
+    private String bluetoothAdvertisePermission = Manifest.permission.BLUETOOTH_ADVERTISE;
+    private String bluetoothScanPermission = Manifest.permission.BLUETOOTH_SCAN;
+    private String bluetoothConnectPermission = Manifest.permission.BLUETOOTH_CONNECT;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,15 +84,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean checkAndAskLocationPermission(Context context) {
-        String locationPermission = Manifest.permission.ACCESS_FINE_LOCATION;
+    private boolean checkAndRequestPermissions(Context context) {
+        ArrayList<String> permissionsNotGranted = new ArrayList<>();
+        String[] permissions = {locationPermission, bluetoothAdvertisePermission, bluetoothScanPermission, bluetoothConnectPermission};
 
-        if (ContextCompat.checkSelfPermission(context, locationPermission) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{locationPermission}, 1);
-            return false;
+        for (String permission : permissions) {
+            boolean isGranted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
+
+            if (!isGranted)
+                permissionsNotGranted.add(permission);
         }
 
-        return true;
+        if (!permissionsNotGranted.isEmpty())
+            ActivityCompat.requestPermissions(this, permissionsNotGranted.toArray(new String[permissionsNotGranted.size()]), 1);
+
+        return permissionsNotGranted.isEmpty();
     }
 
     @Override
@@ -92,20 +106,24 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         Context context = getApplicationContext();
-        String locationPermission = Manifest.permission.ACCESS_FINE_LOCATION;
 
-        if (ContextCompat.checkSelfPermission(context, locationPermission) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(context,"Não é possível iniciar o rastreamento sem a permissão",Toast.LENGTH_SHORT).show();
-        } else {
+        boolean isLocationPermissionGranted = ContextCompat.checkSelfPermission(context, locationPermission) == PackageManager.PERMISSION_GRANTED;
+        boolean isBluetoothAdvertisePermissionGranted = ContextCompat.checkSelfPermission(context, bluetoothAdvertisePermission) == PackageManager.PERMISSION_GRANTED;
+        boolean isBluetoothScanPermissionGranted = ContextCompat.checkSelfPermission(context, bluetoothScanPermission) == PackageManager.PERMISSION_GRANTED;
+
+        Log.i(MAIN_ACTIVITY_LOG, isLocationPermissionGranted + " " + isBluetoothAdvertisePermissionGranted + " " + isBluetoothScanPermissionGranted);
+        if (isLocationPermissionGranted && isBluetoothAdvertisePermissionGranted && isBluetoothScanPermissionGranted) {
             if (startTracing(context)) {
                 tracingSwitch.setChecked(true);
             }
+        } else {
+            tracingSwitch.setChecked(false);
+            Toast.makeText(context,"Não é possível iniciar o rastreamento sem as permissões necessárias",Toast.LENGTH_SHORT).show();
         }
     }
 
     public boolean startTracing(Context context) {
-        Log.i("MAIN_ACTIVITY_TRACING", "start tracing");
-        if (!checkAndAskLocationPermission(context)) {
+        if (!checkAndRequestPermissions(context)) {
             return false;
         }
         enableBluetooth();
