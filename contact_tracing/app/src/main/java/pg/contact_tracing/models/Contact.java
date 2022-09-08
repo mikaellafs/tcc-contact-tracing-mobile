@@ -1,25 +1,37 @@
 package pg.contact_tracing.models;
 
 public class Contact {
-    private String id;
+    private int id;
     private String token;
-    private long timestamp;
-    private long distance;
+    private long firstContactTimestamp;
+    private long lastContactTimestamp;
+    private double distance;
 
     // Extra info
     private int RSSI;
-    private int battery_level;
+    private float batteryLevel;
 
-    public Contact(String id, String token, long timestamp, long distance, int RSSI, int battery_level) {
-        this.id = id;
+    public Contact(String token, long timestamp, double distance, int RSSI, float battery_level) {
+        this.id = -1;
         this.token = token;
-        this.timestamp = timestamp;
+        this.firstContactTimestamp = timestamp;
+        this.lastContactTimestamp = timestamp;
         this.distance = distance;
         this.RSSI = RSSI;
-        this.battery_level = battery_level;
+        this.batteryLevel = battery_level;
     }
 
-    public String getId() {
+    public Contact(int id, String token, long firstTimestamp, long lastTimestamp, double distance, int RSSI, float battery_level) {
+        this.id = id;
+        this.token = token;
+        this.firstContactTimestamp = firstTimestamp;
+        this.lastContactTimestamp = lastTimestamp;
+        this.distance = distance;
+        this.RSSI = RSSI;
+        this.batteryLevel = battery_level;
+    }
+
+    public int getId() {
         return id;
     }
 
@@ -27,11 +39,7 @@ public class Contact {
         return token;
     }
 
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public long getDistance() {
+    public double getDistance() {
         return distance;
     }
 
@@ -39,7 +47,26 @@ public class Contact {
         return RSSI;
     }
 
-    public int getBattery_level() {
-        return battery_level;
+    public long getFirstContactTimestamp() {
+        return firstContactTimestamp;
+    }
+
+    public long getLastContactTimestamp() {
+        return lastContactTimestamp;
+    }
+
+    public void setLastContactTimestamp(long lastContactTimestamp) {
+        this.lastContactTimestamp = lastContactTimestamp;
+    }
+
+    public float getBatteryLevel() {
+        return batteryLevel;
+    }
+
+    @Override
+    public String toString() {
+        return "- Contato \n\tid: " + id + "\n\ttoken: " + token + "\n\tdistance: " + distance +
+                "\n\trssi: " + RSSI + "\n\tfirstContact: " + firstContactTimestamp + "\n\tlastContact: " + lastContactTimestamp +
+                "\n\tbatteryLevel: " + batteryLevel;
     }
 }
