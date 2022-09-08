@@ -9,7 +9,9 @@ import android.app.Service;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseSettings;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -26,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-import pg.contact_tracing.di.Container;
 import pg.contact_tracing.di.DI;
 import pg.contact_tracing.ui.activities.MainActivity;
 import pg.contact_tracing.R;
@@ -36,15 +37,21 @@ import pg.contact_tracing.repositories.UserInformationsRepository;
 
 public class BeaconService extends Service {
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
-    public static final String LOG_KEY_TRANSMIT = "BEACON_SERVICE_TRANSMIT";
-    public static final String LOG_KEY_MONITOR = "BEACON_SERVICE_MONITOR";
+    public static final String BEACON_SERVICE_LOG = "BEACON_SERVICE";
+    public static final String BEACON_SERVICE_TRANSMIT_LOG = "BEACON_SERVICE_TRANSMIT";
+    public static final String BEACON_SERVICE_MONITOR_LOG = "BEACON_SERVICE_MONITOR";
 
     public static boolean isRunning;
 
+    private static long SCAN_PERIOD_INTERVAL = 15000; // 15 sec
     private UserContactsManager userContactsManager;
     private UserInformationsRepository userInformationsRepository;
     private String userID;
     private int appManufacturer;
+
+    private BeaconTransmitter beaconTransmitter;
+    private BeaconManager beaconManager;
+    private Region region;
 
     @Override
     public void onCreate() {
@@ -53,9 +60,21 @@ public class BeaconService extends Service {
         try {
             userInformationsRepository = DI.resolve(UserInformationsRepository.class);
         } catch (Exception e) {
-
+            Log.e(BEACON_SERVICE_LOG, "Failed to resolve userInformation Repository: " + e.toString());
         }
         userContactsManager = new UserContactsManager();
+
+        // Beacon transmitter
+        BeaconParser beaconParser = new BeaconParser()
+                .setBeaconLayout(BeaconParser.ALTBEACON_LAYOUT);
+        beaconTransmitter = new BeaconTransmitter(getApplicationContext(), beaconParser);
+
+        // Beacon monitoring
+        ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
+        identifiers.add(null);
+        region = new Region("aaa", identifiers);
+        beaconManager = BeaconManager.getInstanceForApplication(this);
+
         BeaconService.isRunning = false;
     }
 
@@ -65,6 +84,7 @@ public class BeaconService extends Service {
             userID = userInformationsRepository.getUUID();
             appManufacturer = userInformationsRepository.getAppManufacturer();
         } catch (UserInformationNotFoundException e) {
+            Log.e(BEACON_SERVICE_LOG, "Failed to get user information: " + e.toString());
             stopSelf();
         }
 
@@ -82,6 +102,10 @@ public class BeaconService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        beaconTransmitter.stopAdvertising();
+        beaconManager.stopRangingBeacons(region);
+
+        Log.i(BEACON_SERVICE_LOG, "Beacon service destroyed");
     }
 
     @Override
@@ -104,8 +128,8 @@ public class BeaconService extends Service {
         createNotificationChannel();
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
-        @SuppressLint("UnspecifiedImmutableFlag") PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this,
+                0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(getString(R.string.beacon_notification_title))
                 .setContentText(subtitle)
@@ -126,49 +150,61 @@ public class BeaconService extends Service {
                 .setDataFields(Arrays.asList(new Long[] {0l})) // Remove this for beacon layouts without d: fields
                 .build();
 
-        BeaconParser beaconParser = new BeaconParser()
-                .setBeaconLayout(BeaconParser.ALTBEACON_LAYOUT);
-        BeaconTransmitter beaconTransmitter = new BeaconTransmitter(getApplicationContext(), beaconParser);
         beaconTransmitter.startAdvertising(beacon, new AdvertiseCallback() {
             @Override
             public void onStartFailure(int errorCode) {
-                Log.e(LOG_KEY_TRANSMIT, "Advertisement start failed with code: " + errorCode);
+                Log.e(BEACON_SERVICE_TRANSMIT_LOG, "Advertisement start failed with code: " + errorCode);
             }
 
             @Override
             public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-                Log.i(LOG_KEY_TRANSMIT, "Advertisement start succeeded.");
+                Log.i(BEACON_SERVICE_TRANSMIT_LOG, "Advertisement start succeeded.");
             }
         });
     }
 
     private void monitorBeacons() {
-        BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
+        Log.i(BEACON_SERVICE_MONITOR_LOG, "Monitor beacons");
+
+        try {
+            beaconManager.setForegroundScanPeriod(SCAN_PERIOD_INTERVAL);
+            beaconManager.updateScanPeriods();
+        } catch (RemoteException e) {
+            Log.e(BEACON_SERVICE_MONITOR_LOG, "Failed to update scan interval: " + e.toString());
+        }
+
         beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-                if (beacons.size() > 0) {
-                    userContactsManager.saveBeacon(beacons);
+                Log.i(BEACON_SERVICE_MONITOR_LOG, "Beacons find: " + beacons.size());
 
+                if (beacons.size() > 0) {
                     for (Beacon beacon: beacons) {
-                        Log.i(LOG_KEY_MONITOR, "didRangeBeaconsInRegion, beacon = " + beacon.toString());
+                        saveBeacon(beacon);
+
+                        Log.i(BEACON_SERVICE_MONITOR_LOG, "didRangeBeaconsInRegion, beacon = " + beacon.toString());
 
                         if (beacon.getDistance() <= 1.0) {
-                            Log.i(LOG_KEY_MONITOR, "Very close beacon: " + beacon.getDistance());
+                            Log.i(BEACON_SERVICE_MONITOR_LOG, "Very close beacon: " + beacon.getDistance());
                         } else {
-                            Log.i(LOG_KEY_MONITOR, "Far beacon, discard: " + beacon.getDistance());
+                            Log.i(BEACON_SERVICE_MONITOR_LOG, "Far beacon, discard: " + beacon.getDistance());
                         }
                     }
                 }
             }
         });
 
-        ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
-        identifiers.add(null);
-        beaconManager.startRangingBeacons(new Region("aaa", identifiers));
+
+        beaconManager.startRangingBeacons(region);
+
+    }
+
+    private void saveBeacon(Beacon beacon) {
+        AsyncTask.execute(new Runnable() {
+            @Override public void run() {
+                userContactsManager.saveBeacon(beacon, getApplicationContext());
+            }
+        });
     }
 }
 
-//    AsyncTask.execute(new Runnable() {
-//        @Override public void run() { }
-//    });
