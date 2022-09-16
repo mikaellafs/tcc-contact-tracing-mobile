@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.CompoundButton;
@@ -86,7 +87,14 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean checkAndRequestPermissions(Context context) {
         ArrayList<String> permissionsNotGranted = new ArrayList<>();
-        String[] permissions = {locationPermission, bluetoothAdvertisePermission, bluetoothScanPermission, bluetoothConnectPermission};
+        String[] permissions;
+
+        int sdkVersion = Build.VERSION.SDK_INT;
+        if (sdkVersion > 28) {
+            permissions = new String[]{locationPermission, bluetoothAdvertisePermission, bluetoothScanPermission, bluetoothConnectPermission};
+        } else {
+            permissions = new String[]{locationPermission};
+        }
 
         for (String permission : permissions) {
             boolean isGranted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
@@ -107,18 +115,17 @@ public class MainActivity extends AppCompatActivity {
 
         Context context = getApplicationContext();
 
-        boolean isLocationPermissionGranted = ContextCompat.checkSelfPermission(context, locationPermission) == PackageManager.PERMISSION_GRANTED;
-        boolean isBluetoothAdvertisePermissionGranted = ContextCompat.checkSelfPermission(context, bluetoothAdvertisePermission) == PackageManager.PERMISSION_GRANTED;
-        boolean isBluetoothScanPermissionGranted = ContextCompat.checkSelfPermission(context, bluetoothScanPermission) == PackageManager.PERMISSION_GRANTED;
+        for (int isGranted : grantResults) {
+            if (isGranted == PackageManager.PERMISSION_GRANTED)
+                continue;
 
-        Log.i(MAIN_ACTIVITY_LOG, isLocationPermissionGranted + " " + isBluetoothAdvertisePermissionGranted + " " + isBluetoothScanPermissionGranted);
-        if (isLocationPermissionGranted && isBluetoothAdvertisePermissionGranted && isBluetoothScanPermissionGranted) {
-            if (startTracing(context)) {
-                tracingSwitch.setChecked(true);
-            }
-        } else {
             tracingSwitch.setChecked(false);
             Toast.makeText(context,"Não é possível iniciar o rastreamento sem as permissões necessárias",Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (startTracing(context)) {
+            tracingSwitch.setChecked(true);
         }
     }
 
