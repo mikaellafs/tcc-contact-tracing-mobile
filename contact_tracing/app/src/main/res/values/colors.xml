@@ -10,5 +10,6 @@
 
     <color name="red">#FF271C</color>
     <color name="brand">#3C6E71</color>
+    <color name="brand_light">#DEECED</color>
     <color name="brand_dark">#353535</color>
 </resources>

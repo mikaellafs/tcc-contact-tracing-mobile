@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ContactTracing</string>
+    <string name="app_name">Contact Tracing</string>
     <string name="banner_infection_risk_title">Risco de contágio</string>
     <string name="banner_infection_risk_subtitle">Uma pessoa com quem teve contato nos últimos 14 dias foi diagnosticada com covid-19. A recomendação é procurar o centro de testagem mais próximo e fazer isolamento social.</string>
 
@@ -14,4 +14,11 @@
     <string name="beacon_notification_title">Beacon Service</string>
     <string name="beacon_notification_subtitle">Transmitindo e monitorando beacons</string>
     <string name="beacon_notification_subtitle_field">subtitle</string>
+
+    <string name="launching_subtitle">Um sistema de rastreamento de contato anônimo para covid-19.</string>
+    <string name="lauching_title_register">Registre-se</string>
+    <string name="lauching_subtitle_register">Registre-se e mantenha-se informado em caso de risco de contágio.</string>
+    <string name="lauching_button">Registrar</string>
+
+
 </resources>
