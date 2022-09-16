@@ -19,12 +19,14 @@ import pg.contact_tracing.exceptions.InstanceNotRegisteredDIException;
 import pg.contact_tracing.exceptions.UserInformationNotFoundException;
 import pg.contact_tracing.models.ECSignature;
 import pg.contact_tracing.repositories.UserInformationsRepository;
+import pg.contact_tracing.utils.CryptoManager;
 
 public class LauchingActivity extends AppCompatActivity {
     static private final String LAUCHING_ACTIVITY_LOG = "LAUCHING_ACTIVITY";
     static private final int LAUCHING_SCREEN_DELAY= 2000; //2 seconds
 
     private UserInformationsRepository userInformationsRepository;
+    private CryptoManager cryptoManager;
 
     private Button button;
 
@@ -37,6 +39,7 @@ public class LauchingActivity extends AppCompatActivity {
 
         try {
             userInformationsRepository = DI.resolve(UserInformationsRepository.class);
+            cryptoManager = DI.resolve(CryptoManager.class);
         } catch(InstanceNotRegisteredDIException e) {
             Log.e(LAUCHING_ACTIVITY_LOG, "User information repository not registered");
             System.exit(1);

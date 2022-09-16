@@ -26,7 +26,7 @@ public class UserInformationsRepository {
         storage.saveValue(LocalStorageKey.USER_UUID, uuid);
     }
 
-    public String getPrivateKey() throws  UserInformationNotFoundException {
+    public String getPrivateKey() throws UserInformationNotFoundException {
         String sk = storage.getValue(LocalStorageKey.USER_PRIVATE_KEY);
 
         if (sk == "") {
@@ -49,7 +49,7 @@ public class UserInformationsRepository {
     }
 
     public void savePublicKey(String key) {
-        storage.saveValue(LocalStorageKey.USER_PRIVATE_KEY, key);
+        storage.saveValue(LocalStorageKey.USER_PUBLIC_KEY, key);
     }
 
     public int getAppManufacturer() {
