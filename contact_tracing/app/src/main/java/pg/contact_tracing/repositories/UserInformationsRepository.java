@@ -4,7 +4,7 @@ import android.content.Context;
 
 import pg.contact_tracing.exceptions.UserInformationNotFoundException;
 import pg.contact_tracing.models.LocalStorageKey;
-import pg.contact_tracing.datasource.local.SharedPreferencesStorage;
+import pg.contact_tracing.datasource.sharedpreferences.SharedPreferencesStorage;
 
 public class UserInformationsRepository {
     SharedPreferencesStorage storage;

@@ -1,6 +1,5 @@
-package pg.contact_tracing.services;
+package pg.contact_tracing.services.core;
 
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;

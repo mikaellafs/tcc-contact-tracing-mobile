@@ -2,7 +2,7 @@ package pg.contact_tracing.utils;
 
 import android.content.ContentValues;
 
-import pg.contact_tracing.datasource.local.SQLiteContactsStorageStrings;
+import pg.contact_tracing.datasource.sqlite.SQLiteContactsStorageStrings;
 import pg.contact_tracing.models.Contact;
 
 public class ContactAdapter {

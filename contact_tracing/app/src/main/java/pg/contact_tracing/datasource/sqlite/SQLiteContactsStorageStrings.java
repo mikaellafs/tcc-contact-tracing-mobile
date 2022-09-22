@@ -1,4 +1,4 @@
-package pg.contact_tracing.datasource.local;
+package pg.contact_tracing.datasource.sqlite;
 
 public class SQLiteContactsStorageStrings {
     public static String CONTACTS_TABLE_NAME = "Contacts";

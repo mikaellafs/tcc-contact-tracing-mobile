@@ -6,7 +6,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
-import pg.contact_tracing.datasource.local.SQLiteContactsStorage;
+import pg.contact_tracing.datasource.sqlite.SQLiteContactsStorage;
 import pg.contact_tracing.models.Contact;
 import pg.contact_tracing.models.LocalStorageKey;
 import pg.contact_tracing.utils.ContactAdapter;

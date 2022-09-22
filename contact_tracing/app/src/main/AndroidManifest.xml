@@ -35,7 +35,7 @@
         </activity>
 
         <service
-            android:name=".services.BeaconService"
+            android:name=".services.core.BeaconService"
             android:enabled="true"
             android:exported="true">
             <meta-data

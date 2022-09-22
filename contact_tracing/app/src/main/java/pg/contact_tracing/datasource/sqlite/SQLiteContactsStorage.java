@@ -1,4 +1,4 @@
-package pg.contact_tracing.datasource.local;
+package pg.contact_tracing.datasource.sqlite;
 
 import android.content.ContentValues;
 import android.content.Context;

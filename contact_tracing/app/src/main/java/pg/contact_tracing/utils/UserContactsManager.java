@@ -1,6 +1,6 @@
 package pg.contact_tracing.utils;
 
-import static pg.contact_tracing.datasource.local.SQLiteContactsStorageStrings.ORDER_BY_LAST_CONTACT_DESC;
+import static pg.contact_tracing.datasource.sqlite.SQLiteContactsStorageStrings.ORDER_BY_LAST_CONTACT_DESC;
 
 import android.content.Context;
 import android.content.Intent;

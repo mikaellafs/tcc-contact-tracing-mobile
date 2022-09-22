@@ -7,7 +7,7 @@ import android.util.Log;
 import androidx.core.content.ContextCompat;
 
 import pg.contact_tracing.R;
-import pg.contact_tracing.services.BeaconService;
+import pg.contact_tracing.services.core.BeaconService;
 
 public class BeaconServiceManager {
     public static final String BEACON_SERVICE_MANAGER_LOG = "BEACON_SERVICE_MANAGER";
