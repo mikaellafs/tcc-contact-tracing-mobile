@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package pg.contact_tracing.services.grpc;
+
+option java_package = "pg.contact_tracing.services.grpc";
+option java_multiple_files = true;
+
+service ContactTracing {
+  rpc Register(RegisterRequest) returns (Result) {}
+  rpc ReportInfection(ReportRequest) returns (Result) {}
+}
+
+message RegisterRequest {
+    User user = 1;
+    Signature signature = 2;
+    string password = 3;
+}
+
+message ReportRequest {
+    User user = 1;
+    Signature signature = 2;
+}
+
+message User {
+  string id = 1;
+  string publicKey = 2;
+}
+
+message Result {
+  int32 status = 1;
+  string message = 2;
+}
+
+message Signature {
+  bytes signature = 1;
+  string message = 2;
+}
+
+
