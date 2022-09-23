@@ -42,11 +42,11 @@ public class CryptoManager {
         }
     }
 
-    public String bytesToString(byte[] key) {
+    public static String bytesToString(byte[] key) {
         return Base64.encodeToString(key, Base64.DEFAULT).replace("\n", "");
     }
 
-    public byte[] stringToBytes(String key) {
+    public static byte[] stringToBytes(String key) {
         return Base64.decode(key, Base64.DEFAULT);
     }
 
