@@ -71,11 +71,13 @@ public class LauchingActivity extends AppCompatActivity {
             userInformationsRepository.getPrivateKey();
             Log.i(LAUCHING_ACTIVITY_LOG, "Key pair found");
 
-            // TODO: Check if user is registered (server pk is saved)
+            // Check if user is registered
+            userInformationsRepository.getServerPublicKey();
+            Log.i(LAUCHING_ACTIVITY_LOG, "Server pk found");
 
             goToHomeScreen();
         } catch (UserInformationNotFoundException e) {
-            Log.i(LAUCHING_ACTIVITY_LOG, "Key pair NOT found");
+            Log.i(LAUCHING_ACTIVITY_LOG, e.getMessage());
             runOnUiThread(() -> setToRegisterScreen());
         }
     }
@@ -107,10 +109,10 @@ public class LauchingActivity extends AppCompatActivity {
             // TODO: REMOVE LOADING BUTTON
 
             if (result.getCode() != 200) {
-                Toast.makeText(getApplicationContext(), result.getMessage(),Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), result.getMessage(), Toast.LENGTH_SHORT).show();
                 return;
             }
-
+            userInformationsRepository.saveServerPublicKey(result.getServerPk());
             goToHomeScreen();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | SignatureException e) {
             userInformationsRepository.clearInfos();

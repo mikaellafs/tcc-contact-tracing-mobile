@@ -26,6 +26,12 @@ public enum LocalStorageKey {
             return "CONTACT_TRACING_USER_PK";
         }
     },
+    SERVER_PUBLIC_KEY {
+        @Override
+        public String toString() {
+            return "CONTACT_TRACING_SERVER_PK";
+        }
+    },
     USER_CONTACTS_STORAGE {
         @Override
         public String toString() {

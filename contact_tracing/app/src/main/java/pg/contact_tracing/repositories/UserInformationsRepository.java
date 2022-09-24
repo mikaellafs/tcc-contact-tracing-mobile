@@ -52,6 +52,19 @@ public class UserInformationsRepository {
         storage.saveValue(LocalStorageKey.USER_PUBLIC_KEY, key);
     }
 
+    public String getServerPublicKey() throws UserInformationNotFoundException {
+        String pk = storage.getValue(LocalStorageKey.SERVER_PUBLIC_KEY);
+
+        if (pk == "") {
+            throw new UserInformationNotFoundException("Could not find server public key");
+        }
+        return pk;
+    }
+
+    public void saveServerPublicKey(String key) {
+        storage.saveValue(LocalStorageKey.SERVER_PUBLIC_KEY, key);
+    }
+
     public int getAppManufacturer() {
         // TODO: get app hash to be used as manufacturer id in beacon service
         return 0x0118;
