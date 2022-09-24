@@ -22,7 +22,7 @@ public class GrpcService {
         blockingStub = ContactTracingGrpc.newBlockingStub(mChannel);
     }
 
-    public Result registerUser(String id, String publicKey, ByteString sig, String messageSigned, String password) {
+    public RegisterResult registerUser(String id, String publicKey, ByteString sig, String messageSigned, String password) {
         Log.i(GRPC_SERVICE_LOG, "Register user: " + id);
         User user = User.newBuilder()
                 .setId(id)
@@ -42,7 +42,7 @@ public class GrpcService {
         return blockingStub.register(request);
     }
 
-    public Result reportInfection(
+    public ReportResult reportInfection(
             String id,
             String publicKey,
             ByteString sig,

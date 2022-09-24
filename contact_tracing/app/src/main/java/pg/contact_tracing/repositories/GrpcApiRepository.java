@@ -10,7 +10,8 @@ import pg.contact_tracing.models.ApiResult;
 import pg.contact_tracing.models.ECSignature;
 import pg.contact_tracing.models.User;
 import pg.contact_tracing.services.grpc.GrpcService;
-import pg.contact_tracing.services.grpc.Result;
+import pg.contact_tracing.services.grpc.RegisterResult;
+import pg.contact_tracing.services.grpc.ReportResult;
 
 public class GrpcApiRepository {
     private static final String GRPC_API_REPOSITORY_LOG = "GRPC_API_REPOSITORY";
@@ -24,19 +25,19 @@ public class GrpcApiRepository {
     public ApiResult registerUser(User user, ECSignature signature, String password) {
         Log.i(GRPC_API_REPOSITORY_LOG, "Register user: " + user.toString() + "\nSignature: " + signature.toString());
 
-        Result result = api.registerUser(user.getId(),
+        RegisterResult result = api.registerUser(user.getId(),
                 user.getPublicKey(),
                 ByteString.copyFrom(signature.getSignature()),
                 new String(signature.getMessage()),
                 password);
 
         Log.i(GRPC_API_REPOSITORY_LOG, "Register user api call result: "+ result.getStatus() + " - " + result.getMessage());
-        return new ApiResult(result.getStatus(), result.getMessage());
+        return new ApiResult(result.getStatus(), result.getMessage(), result.getServerPk());
     }
 
     public ApiResult reportInfection(User user, ECSignature signature, Date dateStartSymptoms, Date dateDiagnostic) {
         Log.i(GRPC_API_REPOSITORY_LOG, "Report infection: startSymptoms at " + dateStartSymptoms.toString() + " and diagnosed at " + dateDiagnostic.toString());
-        Result result = api.reportInfection(
+        ReportResult result = api.reportInfection(
                 user.getId(),
                 user.getPublicKey(),
                 ByteString.copyFrom(signature.getSignature()),
