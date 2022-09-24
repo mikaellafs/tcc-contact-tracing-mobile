@@ -7,6 +7,6 @@ public class InstanceNotRegisteredDIException extends Exception {
         this.className = className;
     }
     public String toString() {
-        return ("Dependency Ingection Container does not have the class registered: " + className);
+        return ("Dependency Injection Container does not have the class registered: " + className);
     }
 }

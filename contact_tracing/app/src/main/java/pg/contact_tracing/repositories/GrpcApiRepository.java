@@ -30,10 +30,12 @@ public class GrpcApiRepository {
                 new String(signature.getMessage()),
                 password);
 
+        Log.i(GRPC_API_REPOSITORY_LOG, "Register user api call result: "+ result.getStatus() + " - " + result.getMessage());
         return new ApiResult(result.getStatus(), result.getMessage());
     }
 
     public ApiResult reportInfection(User user, ECSignature signature, Date dateStartSymptoms, Date dateDiagnostic) {
+        Log.i(GRPC_API_REPOSITORY_LOG, "Report infection: startSymptoms at " + dateStartSymptoms.toString() + " and diagnosed at " + dateDiagnostic.toString());
         Result result = api.reportInfection(
                 user.getId(),
                 user.getPublicKey(),
@@ -43,6 +45,7 @@ public class GrpcApiRepository {
                 dateDiagnostic.getTime(),
                 new Date().getTime());
 
+        Log.i(GRPC_API_REPOSITORY_LOG, "Report infection api call result: "+ result.getStatus() + " - " + result.getMessage());
         return new ApiResult(result.getStatus(), result.getMessage());
     }
 }
