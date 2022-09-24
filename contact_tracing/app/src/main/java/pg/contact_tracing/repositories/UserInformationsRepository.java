@@ -12,7 +12,7 @@ public class UserInformationsRepository {
     public UserInformationsRepository(Context context) {
         storage = new SharedPreferencesStorage(context, LocalStorageKey.USER_INFO_STORAGE);
     }
-    public String getUUID() throws UserInformationNotFoundException {
+    public String getUUID() {
         return "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6";
 //        String uuid = storage.getValue(LocalStorageKey.USER_UUID);
 //
