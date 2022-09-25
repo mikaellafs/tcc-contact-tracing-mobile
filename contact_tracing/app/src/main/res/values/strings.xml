@@ -16,7 +16,7 @@
     <string name="launching_subtitle">Um sistema de rastreamento de contato anônimo para covid-19.</string>
     <string name="lauching_title_register">Registre-se</string>
     <string name="lauching_subtitle_register">Registre-se e mantenha-se informado em caso de risco de contágio.</string>
-    <string name="lauching_button">Registrar</string>
+    <string name="lauching_button">Começar</string>
 
 
 </resources>

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +40,8 @@ public class LauchingActivity extends AppCompatActivity {
     private CryptoManager cryptoManager;
 
     private Button button;
+    ConstraintLayout button_layout;
+    private ProgressBar loading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +49,7 @@ public class LauchingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_lauching);
 
         button = findViewById(R.id.register_button);
+        loading = findViewById(R.id.register_progress_bar);
 
         try {
             userInformationsRepository = DI.resolve(UserInformationsRepository.class);
@@ -77,7 +81,7 @@ public class LauchingActivity extends AppCompatActivity {
 
             goToHomeScreen();
         } catch (UserInformationNotFoundException e) {
-            Log.i(LAUCHING_ACTIVITY_LOG, e.getMessage());
+            Log.i(LAUCHING_ACTIVITY_LOG, "Key not found: " + e.getMessage());
             runOnUiThread(() -> setToRegisterScreen());
         }
     }
@@ -86,7 +90,7 @@ public class LauchingActivity extends AppCompatActivity {
         Log.i(LAUCHING_ACTIVITY_LOG, "Set to register screen");
         TextView title = findViewById(R.id.lauching_title);
         TextView subtitle = findViewById(R.id.lauching_subtitle);
-        ConstraintLayout button_layout = findViewById(R.id.lauching_button_layout);
+        button_layout = findViewById(R.id.lauching_button_layout);
 
         title.setText(R.string.lauching_title_register);
         subtitle.setText(R.string.lauching_subtitle_register);
@@ -100,13 +104,11 @@ public class LauchingActivity extends AppCompatActivity {
 
     private void registerButtonAction() {
         Log.i(LAUCHING_ACTIVITY_LOG, "Register button tapped, create a key pair.");
-        button.setClickable(false);
-        // TODO: SHOW LOADING BUTTON
+        showLoading();
 
         // TODO: ASK PASSWORD
         try {
             ApiResult result = registerUser("");
-            // TODO: REMOVE LOADING BUTTON
 
             if (result.getCode() != 200) {
                 Toast.makeText(getApplicationContext(), result.getMessage(), Toast.LENGTH_SHORT).show();
@@ -120,6 +122,11 @@ public class LauchingActivity extends AppCompatActivity {
         } catch (UserInformationNotFoundException | InvalidKeyException e) {
             userInformationsRepository.clearInfos();
             Toast.makeText(getApplicationContext(),"Algo deu errado, tente novamente mais tarde.",Toast.LENGTH_SHORT).show();
+        } catch (io.grpc.StatusRuntimeException e) {
+            userInformationsRepository.clearInfos();
+            Toast.makeText(getApplicationContext(),"Falha na conexão com servidor, tente novamente mais tarde.",Toast.LENGTH_SHORT).show();
+        } finally {
+            hideLoading();
         }
     }
 
@@ -140,5 +147,17 @@ public class LauchingActivity extends AppCompatActivity {
     private void goToHomeScreen() {
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         startActivity(intent);
+    }
+
+    private void showLoading() {
+        button.setClickable(false);
+        button_layout.setVisibility(View.GONE);
+        loading.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading() {
+        button.setClickable(true);
+        button_layout.setVisibility(View.VISIBLE);
+        loading.setVisibility(View.GONE);
     }
 }
