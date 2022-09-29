@@ -58,34 +58,6 @@ public class PasswordDialog extends DialogFragment {
         return view;
     }
 
-//    @Override
-//    public Dialog onCreateDialog(Bundle savedInstanceState) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-//        // Get the layout inflater
-//        LayoutInflater inflater = requireActivity().getLayoutInflater();
-//
-//        // Inflate and set the layout for the dialog
-//        // Pass null as the parent view because its going in the dialog layout
-//        builder.setView(inflater.inflate(R.layout.password_dialog,null))
-//                // Add action buttons
-//                .setPositiveButton("Continuar", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int id) {
-//                        listener.onDialogPositiveClick(PasswordDialog.this);
-//                        return;
-//                    }
-//                })
-//                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialog, int id) {
-//                        listener.onDialogNegativeClick(PasswordDialog.this);
-//                        PasswordDialog.this.getDialog().cancel();
-//                    }
-//                })
-//                .setOn;
-//
-//        return builder.create();
-//    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);

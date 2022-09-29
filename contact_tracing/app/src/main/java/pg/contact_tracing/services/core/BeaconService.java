@@ -24,13 +24,12 @@ import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import pg.contact_tracing.di.DI;
 import pg.contact_tracing.ui.activities.MainActivity;
 import pg.contact_tracing.R;
-import pg.contact_tracing.exceptions.UserInformationNotFoundException;
 import pg.contact_tracing.utils.UserContactsManager;
 import pg.contact_tracing.repositories.UserInformationsRepository;
 
@@ -42,7 +41,7 @@ public class BeaconService extends Service {
 
     public static boolean isRunning;
 
-    private static long SCAN_PERIOD_INTERVAL = 15000; // 15 sec
+    private static final long SCAN_PERIOD_INTERVAL = 15000; // 15 sec
     private UserContactsManager userContactsManager;
     private UserInformationsRepository userInformationsRepository;
     private String userID;
@@ -59,7 +58,7 @@ public class BeaconService extends Service {
         try {
             userInformationsRepository = DI.resolve(UserInformationsRepository.class);
         } catch (Exception e) {
-            Log.e(BEACON_SERVICE_LOG, "Failed to resolve userInformation Repository: " + e.toString());
+            Log.e(BEACON_SERVICE_LOG, "Failed to resolve userInformation Repository: " + e);
         }
         userContactsManager = new UserContactsManager();
 
@@ -69,7 +68,7 @@ public class BeaconService extends Service {
         beaconTransmitter = new BeaconTransmitter(getApplicationContext(), beaconParser);
 
         // Beacon monitoring
-        ArrayList<Identifier> identifiers = new ArrayList<Identifier>();
+        ArrayList<Identifier> identifiers = new ArrayList<>();
         identifiers.add(null);
         region = new Region("aaa", identifiers);
         beaconManager = BeaconManager.getInstanceForApplication(this);
@@ -79,13 +78,8 @@ public class BeaconService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        try {
-            userID = userInformationsRepository.getUUID();
-            appManufacturer = userInformationsRepository.getAppManufacturer();
-        } catch (UserInformationNotFoundException e) {
-            Log.e(BEACON_SERVICE_LOG, "Failed to get user information: " + e.toString());
-            stopSelf();
-        }
+        userID = userInformationsRepository.getUUID();
+        appManufacturer = userInformationsRepository.getAppManufacturer();
 
         Notification notification = createNotification(intent);
 
@@ -129,14 +123,12 @@ public class BeaconService extends Service {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
                 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(getString(R.string.beacon_notification_title))
                 .setContentText(subtitle)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentIntent(pendingIntent)
                 .build();
-
-        return notification;
     }
 
     private void transmitBeacon(){
@@ -146,7 +138,7 @@ public class BeaconService extends Service {
                 .setId3("2")
                 .setManufacturer(appManufacturer)
                 .setTxPower(-59)
-                .setDataFields(Arrays.asList(new Long[] {0l})) // Remove this for beacon layouts without d: fields
+                .setDataFields(Collections.singletonList(0L)) // Remove this for beacon layouts without d: fields
                 .build();
 
         beaconTransmitter.startAdvertising(beacon, new AdvertiseCallback() {
@@ -169,25 +161,22 @@ public class BeaconService extends Service {
             beaconManager.setForegroundScanPeriod(SCAN_PERIOD_INTERVAL);
             beaconManager.updateScanPeriods();
         } catch (RemoteException e) {
-            Log.e(BEACON_SERVICE_MONITOR_LOG, "Failed to update scan interval: " + e.toString());
+            Log.e(BEACON_SERVICE_MONITOR_LOG, "Failed to update scan interval: " + e);
         }
 
-        beaconManager.addRangeNotifier(new RangeNotifier() {
-            @Override
-            public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-                Log.i(BEACON_SERVICE_MONITOR_LOG, "Beacons find: " + beacons.size());
+        beaconManager.addRangeNotifier((beacons, region) -> {
+            Log.i(BEACON_SERVICE_MONITOR_LOG, "Beacons find: " + beacons.size());
 
-                if (beacons.size() > 0) {
-                    for (Beacon beacon: beacons) {
-                        saveBeacon(beacon);
+            if (beacons.size() > 0) {
+                for (Beacon beacon: beacons) {
+                    saveBeacon(beacon);
 
-                        Log.i(BEACON_SERVICE_MONITOR_LOG, "didRangeBeaconsInRegion, beacon = " + beacon.toString());
+                    Log.i(BEACON_SERVICE_MONITOR_LOG, "didRangeBeaconsInRegion, beacon = " + beacon.toString());
 
-                        if (beacon.getDistance() <= 1.0) {
-                            Log.i(BEACON_SERVICE_MONITOR_LOG, "Very close beacon: " + beacon.getDistance());
-                        } else {
-                            Log.i(BEACON_SERVICE_MONITOR_LOG, "Far beacon, discard: " + beacon.getDistance());
-                        }
+                    if (beacon.getDistance() <= 1.0) {
+                        Log.i(BEACON_SERVICE_MONITOR_LOG, "Very close beacon: " + beacon.getDistance());
+                    } else {
+                        Log.i(BEACON_SERVICE_MONITOR_LOG, "Far beacon, discard: " + beacon.getDistance());
                     }
                 }
             }
@@ -199,11 +188,7 @@ public class BeaconService extends Service {
     }
 
     private void saveBeacon(Beacon beacon) {
-        AsyncTask.execute(new Runnable() {
-            @Override public void run() {
-                userContactsManager.saveBeacon(beacon, getApplicationContext());
-            }
-        });
+        AsyncTask.execute(() -> userContactsManager.saveBeacon(beacon, getApplicationContext()));
     }
 }
 
