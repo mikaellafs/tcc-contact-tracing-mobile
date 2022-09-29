@@ -2,19 +2,20 @@ package pg.contact_tracing.ui.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.DialogFragment;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Timer;
@@ -29,9 +30,10 @@ import pg.contact_tracing.models.ECSignature;
 import pg.contact_tracing.models.User;
 import pg.contact_tracing.repositories.GrpcApiRepository;
 import pg.contact_tracing.repositories.UserInformationsRepository;
+import pg.contact_tracing.ui.fragments.PasswordDialog;
 import pg.contact_tracing.utils.CryptoManager;
 
-public class LauchingActivity extends AppCompatActivity {
+public class LauchingActivity extends AppCompatActivity implements PasswordDialog.PasswordDialogListener {
     static private final String LAUCHING_ACTIVITY_LOG = "LAUCHING_ACTIVITY";
     static private final int LAUCHING_SCREEN_DELAY= 2000; //2 seconds
 
@@ -96,19 +98,17 @@ public class LauchingActivity extends AppCompatActivity {
         subtitle.setText(R.string.lauching_subtitle_register);
 
         // Set button action
-        button.setOnClickListener(v -> registerButtonAction());
+        button.setOnClickListener(v -> showPasswordDialog());
 
         button.setVisibility(View.VISIBLE);
         button_layout.setVisibility(View.VISIBLE);
     }
 
-    private void registerButtonAction() {
+    private void registerButtonAction(String password) {
         Log.i(LAUCHING_ACTIVITY_LOG, "Register button tapped, create a key pair.");
         showLoading();
-
-        // TODO: ASK PASSWORD
         try {
-            ApiResult result = registerUser("");
+            ApiResult result = registerUser(password);
 
             if (result.getCode() != 200) {
                 Toast.makeText(getApplicationContext(), result.getMessage(), Toast.LENGTH_SHORT).show();
@@ -159,5 +159,51 @@ public class LauchingActivity extends AppCompatActivity {
         button.setClickable(true);
         button_layout.setVisibility(View.VISIBLE);
         loading.setVisibility(View.GONE);
+    }
+
+    // Password dialog
+
+    public void showPasswordDialog() {
+        PasswordDialog passwordDialog = new PasswordDialog();
+        passwordDialog.show(getSupportFragmentManager(), "PasswordDialog");
+    }
+
+    @Override
+    public void onDialogPositiveClick(PasswordDialog dialog) {
+        Log.i(LAUCHING_ACTIVITY_LOG, "Password dialog register click");
+
+        boolean isValid = validateFields(dialog);
+        if (!isValid) return;
+
+        registerButtonAction(dialog.getPassword());
+        dialog.dismiss();
+    }
+
+    @Override
+    public void onDialogNegativeClick(PasswordDialog dialog) {
+        Log.i(LAUCHING_ACTIVITY_LOG, "Password dialog negative click");
+    }
+
+    private boolean validateFields(PasswordDialog dialog) {
+        String password = dialog.getPassword();
+        String repeatPassword = dialog.getRepeatPassword();
+
+        if (!password.equals(repeatPassword)) {
+            dialog.setPrompt(R.string.password_dialog_prompt_different_password);
+            dialog.showPrompt();
+            Log.i(LAUCHING_ACTIVITY_LOG, "Different password inputs");
+            return false;
+        }
+
+        if (password.length() < 6 || password.length() > 16) {
+            dialog.setPrompt(R.string.password_dialog_prompt_password_size);
+            dialog.showPrompt();
+            Log.i(LAUCHING_ACTIVITY_LOG, "Password too short or too long");
+            return false;
+        }
+
+        Log.i(LAUCHING_ACTIVITY_LOG, "Password validated");
+        dialog.hidePrompt();
+        return true;
     }
 }

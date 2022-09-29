@@ -8,6 +8,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -48,6 +49,14 @@ public class CryptoManager {
 
     public static byte[] stringToBytes(String key) {
         return Base64.decode(key, Base64.DEFAULT);
+    }
+
+    public String toSha256(String str) throws NoSuchAlgorithmException {
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        messageDigest.update(str.getBytes());
+        String stringHash = new String(messageDigest.digest());
+
+        return stringHash;
     }
 
     public String generateKeyPair() throws NoSuchAlgorithmException {
