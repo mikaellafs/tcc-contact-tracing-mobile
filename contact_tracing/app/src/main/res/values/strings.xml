@@ -18,5 +18,14 @@
     <string name="lauching_subtitle_register">Registre-se e mantenha-se informado em caso de risco de contágio.</string>
     <string name="lauching_button">Começar</string>
 
+    <!--  Password dilog  -->
+    <string name="password_dialog_title">Crie uma senha</string>
+    <string name="password_dialog_subtitle">Se você já utilizou o app, basta inserir a senha que já cadastrou anteriormente.</string>
+    <string name="password_dialog_password_text">Senha</string>
+    <string name="password_dialog_repeat_password_text">Repita a senha</string>
+    <string name="password_dialog_prompt_different_password">As senhas não coincidem</string>
+    <string name="password_dialog_prompt_password_size">A senha deve ter no mínimo 8 caracteres e no máximo 16 </string>
+    <string name="password_dialog_cancel_button">Cancelar</string>
+    <string name="password_dialog_continue_button">Continuar</string>
 
 </resources>
