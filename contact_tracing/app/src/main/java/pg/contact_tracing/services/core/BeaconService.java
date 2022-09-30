@@ -20,11 +20,9 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.BeaconTransmitter;
 import org.altbeacon.beacon.Identifier;
-import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 
 import pg.contact_tracing.di.DI;
@@ -78,7 +76,7 @@ public class BeaconService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        userID = userInformationsRepository.getUUID();
+        userID = userInformationsRepository.getID();
         appManufacturer = userInformationsRepository.getAppManufacturer();
 
         Notification notification = createNotification(intent);
@@ -89,7 +87,7 @@ public class BeaconService extends Service {
         monitorBeacons();
 
         BeaconService.isRunning = true;
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     @Override
