@@ -9,25 +9,43 @@ import android.os.BatteryManager;
 import android.util.Log;
 
 import org.altbeacon.beacon.Beacon;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Date;
 
 import pg.contact_tracing.di.DI;
+import pg.contact_tracing.exceptions.UserInformationNotFoundException;
 import pg.contact_tracing.models.Contact;
+import pg.contact_tracing.models.ECSignature;
 import pg.contact_tracing.repositories.UserContactsRepository;
+import pg.contact_tracing.repositories.UserInformationsRepository;
+import pg.contact_tracing.services.grpc.Signature;
 
 public class UserContactsManager {
     private static String USER_CONTACTS_MANAGER_LOG = "USER_CONTACTS_MANAGER";
     private final long MAX_TIME_DIFF = 2 * 60 * 1000; // 2 minutos
     UserContactsRepository repository;
+    CryptoManager cryptoManager;
 
     public UserContactsManager() {
         try {
             repository = DI.resolve(UserContactsRepository.class);
+            cryptoManager = DI.resolve(CryptoManager.class);
         } catch(Exception e) {
+            Log.e(USER_CONTACTS_MANAGER_LOG, "Failed to resolve UserContacts repository or CryptoManager: " + e);
             repository = null;
         }
+    }
+
+    public UserContactsManager(UserContactsRepository repo, CryptoManager crypto) {
+        repository = repo;
+        cryptoManager = crypto;
     }
     public void saveBeacon(Beacon beacon, Context context) {
         Log.i(USER_CONTACTS_MANAGER_LOG, "Save beacon: " + beacon.toString());
@@ -66,6 +84,26 @@ public class UserContactsManager {
                 batteryLevel);
 
         repository.addNewContact(contact);
+    }
+
+    public String makeContactMessageAsJson(Contact contact, String id)
+            throws JSONException,
+            UserInformationNotFoundException,
+            NoSuchAlgorithmException,
+            InvalidKeySpecException,
+            SignatureException,
+            InvalidKeyException {
+        JSONObject message = new JSONObject();
+
+        message.put("contact", ContactAdapter.toJSONObject(contact));
+        message.put("user", id);
+
+        String msgStr = message.toString();
+        ECSignature sig = cryptoManager.sign(msgStr);
+
+        message.put("signature", sig);
+
+        return message.toString();
     }
 
     private float getBatteryLevel(Context context) {

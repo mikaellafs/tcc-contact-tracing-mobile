@@ -1,6 +1,10 @@
 package pg.contact_tracing.utils;
 
 import android.content.ContentValues;
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import pg.contact_tracing.datasource.sqlite.SQLiteContactsStorageStrings;
 import pg.contact_tracing.models.Contact;
@@ -31,5 +35,22 @@ public class ContactAdapter {
         values.put(SQLiteContactsStorageStrings.BATTERY_LEVEL_COL, contact.getBatteryLevel());
 
         return values;
+    }
+
+    public static JSONObject toJSONObject(Contact contact) {
+        JSONObject contactJson = new JSONObject();
+
+        try {
+            contactJson.put("token", contact.getToken());
+            contactJson.put("firstContactTimestamp", contact.getFirstContactTimestamp());
+            contactJson.put("lastContactTimestamp", contact.getLastContactTimestamp());
+            contactJson.put("distance", contact.getDistance());
+            contactJson.put("rssi", contact.getRSSI());
+            contactJson.put("batteryLevel", contact.getBatteryLevel());
+        } catch (JSONException e) {
+            Log.e("CONTACTS_ADAPTER","Failed to parse contact as json");
+        }
+
+        return contactJson;
     }
 }

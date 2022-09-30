@@ -6,6 +6,7 @@ import pg.contact_tracing.exceptions.InstanceNotRegisteredDIException;
 import pg.contact_tracing.repositories.GrpcApiRepository;
 import pg.contact_tracing.repositories.UserContactsRepository;
 import pg.contact_tracing.repositories.UserInformationsRepository;
+import pg.contact_tracing.services.mqtt.MqttClientService;
 import pg.contact_tracing.utils.CryptoManager;
 
 public class DI {
@@ -17,6 +18,7 @@ public class DI {
         container.register(UserContactsRepository.class, new UserContactsRepository(context));
         container.register(CryptoManager.class, new CryptoManager());
         container.register(GrpcApiRepository.class, new GrpcApiRepository());
+        container.register(MqttClientService.class, new MqttClientService(context));
     }
 
     public static <T> T resolve(Class<T> type) throws InstanceNotRegisteredDIException {

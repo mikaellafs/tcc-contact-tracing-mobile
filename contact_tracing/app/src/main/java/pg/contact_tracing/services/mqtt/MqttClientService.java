@@ -6,13 +6,10 @@ import android.util.Log;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-
-import java.io.UnsupportedEncodingException;
-
-import pg.contact_tracing.ui.fragments.PasswordDialog;
 
 public class MqttClientService {
     private static String MQTT_CLIENT_SERVICE_LOG = "MQTT_CLIENT_SERVICE";
@@ -30,6 +27,10 @@ public class MqttClientService {
     public void connect(IMqttActionListener listener) throws MqttException {
         IMqttToken token = client.connect();
         token.setActionCallback(listener);
+    }
+
+    public void setCallBack(MqttCallback callback) {
+        client.setCallback(callback);
     }
 
     public void publish(String topic, byte[] messageBytes) throws MqttException {

@@ -49,6 +49,15 @@
         <service android:name="org.eclipse.paho.android.service.MqttService" >
         </service>
 
+        <service
+            android:name=".services.core.MqttContactTracingService"
+            android:enabled="true"
+            android:exported="true">
+            <meta-data
+                android:name="longScanForcingEnabled"
+                android:value="true" />
+        </service>
+
         <activity
             android:name=".ui.activities.MainActivity"
             android:exported="true"
