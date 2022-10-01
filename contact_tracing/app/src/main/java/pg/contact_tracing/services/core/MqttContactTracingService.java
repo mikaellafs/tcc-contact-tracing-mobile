@@ -200,6 +200,7 @@ public class MqttContactTracingService extends Service implements MqttCallback {
     }
 
     private void sendContacts() {
+        Log.i(CONTACTS_PRODUCER_SERVICE_LOG, "Start sending contacts saved");
         try {
             ArrayList<Contact> lastContacts = repository.getContact(
                     null,
@@ -209,6 +210,7 @@ public class MqttContactTracingService extends Service implements MqttCallback {
 
             for (Contact contact : lastContacts) {
                 String message = helper.makeContactMessageAsJson(contact, userId);
+                Log.i(CONTACTS_PRODUCER_SERVICE_LOG, "Publishing message (contact) to mqtt broker: " + message);
                 client.publish(SEND_CONTACTS_TOPIC, message.getBytes());
             }
         } catch (UserInformationNotFoundException | JSONException
@@ -220,6 +222,7 @@ public class MqttContactTracingService extends Service implements MqttCallback {
             Log.e(CONTACTS_PRODUCER_SERVICE_LOG, "Failed to send message to broker.");
 
         } finally {
+            Log.i(MQTT_CONTACT_TRACING_SERVICE_LOG, "Stopping sending contacts saved for now");
             startSendContactsTask();
         }
     }
@@ -250,6 +253,18 @@ public class MqttContactTracingService extends Service implements MqttCallback {
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
-        Log.i(CONTACTS_PRODUCER_SERVICE_LOG, "Message sent succefully");
+        Log.i(CONTACTS_PRODUCER_SERVICE_LOG, "Message sent successfully");
+
+        try {
+            MqttMessage mqttMessage = token.getMessage();
+            JSONObject message = new JSONObject(mqttMessage.toString());
+
+            int contactId = message.getInt("id");
+            int deleted = repository.deleteContact(contactId);
+
+            Log.i(CONTACTS_PRODUCER_SERVICE_LOG, "Deleted contacts with id " + contactId + ": " + deleted);
+        } catch (MqttException | JSONException e) {
+            Log.e(CONTACTS_PRODUCER_SERVICE_LOG, "Failed to get message delivered");
+        }
     }
 }

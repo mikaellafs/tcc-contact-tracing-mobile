@@ -17,6 +17,8 @@ public class SQLiteContactsStorageStrings {
         return new String[]{ID_COL, TOKEN_COL, FIRST_TIMESTAMP_COL, LAST_TIMESTAMP_COL, DISTANCE_COL, RSSI_COL, BATTERY_LEVEL_COL};
     }
 
+    public static String WHERE_BY_ID = SQLiteContactsStorageStrings.ID_COL + " = ?";
+
     public static String createContactsTable() {
         return "CREATE TABLE " + CONTACTS_TABLE_NAME + " ("
                 + ID_COL + " INTEGER PRIMARY KEY AUTOINCREMENT,"

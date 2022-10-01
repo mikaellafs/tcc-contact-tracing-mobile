@@ -44,4 +44,9 @@ public class UserContactsRepository {
         Log.i(USER_CONTACTS_REPOSITORY_LOG, "Update contact " + contact.toString());
         storage.updateContact(contact.getId(), ContactAdapter.toTable(contact));
     }
+
+    public int deleteContact(int id) {
+        Log.i(USER_CONTACTS_REPOSITORY_LOG, "Delete contact id: " + id);
+        return storage.deleteContact(id);
+    }
 }

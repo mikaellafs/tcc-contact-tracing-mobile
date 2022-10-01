@@ -1,5 +1,7 @@
 package pg.contact_tracing.datasource.sqlite;
 
+import static pg.contact_tracing.datasource.sqlite.SQLiteContactsStorageStrings.WHERE_BY_ID;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -48,8 +50,18 @@ public class SQLiteContactsStorage extends SQLiteOpenHelper {
         Log.i(SQLITE_CONTACT_STORAGE_LOG, "Update contact of id " + id + " with values " + values.toString());
 
         SQLiteDatabase db = this.getWritableDatabase();
-        db.update(SQLiteContactsStorageStrings.CONTACTS_TABLE_NAME, values, SQLiteContactsStorageStrings.ID_COL + " = ?", new String[]{id + ""});
+        db.update(SQLiteContactsStorageStrings.CONTACTS_TABLE_NAME, values, WHERE_BY_ID, new String[]{id + ""});
         db.close();
+    }
+
+    public int deleteContact(int id) {
+        Log.i(SQLITE_CONTACT_STORAGE_LOG, "Delete contact id: " + id);
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        int deleted = db.delete(SQLiteContactsStorageStrings.CONTACTS_TABLE_NAME, WHERE_BY_ID, new String[]{id + ""});
+        db.close();
+
+        return deleted;
     }
 
     @Override

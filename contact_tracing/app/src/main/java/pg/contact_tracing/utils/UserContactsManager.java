@@ -95,6 +95,7 @@ public class UserContactsManager {
             InvalidKeyException {
         JSONObject message = new JSONObject();
 
+        message.put("id", contact.getId()); // To delete from memory after completed delivery
         message.put("contact", ContactAdapter.toJSONObject(contact));
         message.put("user", id);
 
