@@ -17,14 +17,16 @@ public class WarningBanner extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        subtitle = getView().findViewById(R.id.warning_subtitle);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.warning_banner, container, false);
+        View view = inflater.inflate(R.layout.warning_banner, container, false);
+
+        subtitle = view.findViewById(R.id.warning_subtitle);
+        return view;
     }
 
     public void setMessage(String message) {
