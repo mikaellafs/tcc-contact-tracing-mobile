@@ -1,5 +1,7 @@
 package pg.contact_tracing.repositories;
 
+import static pg.contact_tracing.datasource.sqlite.SQLiteContactsStorageStrings.WHERE_BY_ID;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.util.Log;
@@ -9,7 +11,9 @@ import java.util.ArrayList;
 import pg.contact_tracing.datasource.sqlite.SQLiteContactsStorage;
 import pg.contact_tracing.models.Contact;
 import pg.contact_tracing.models.LocalStorageKey;
+import pg.contact_tracing.models.RiskNotification;
 import pg.contact_tracing.utils.ContactAdapter;
+import pg.contact_tracing.utils.RiskNotificationAdapter;
 
 public class UserContactsRepository {
     private static String USER_CONTACTS_REPOSITORY_LOG = "USER_CONTACTS_REPOSITORY";
@@ -48,5 +52,27 @@ public class UserContactsRepository {
     public int deleteContact(int id) {
         Log.i(USER_CONTACTS_REPOSITORY_LOG, "Delete contact id: " + id);
         return storage.deleteContact(id);
+    }
+
+    public void addNewNotification(RiskNotification notification) {
+        Log.i(USER_CONTACTS_REPOSITORY_LOG, "Add new contact: " + notification.toString());
+        ContentValues values = RiskNotificationAdapter.toTable(notification);
+
+        storage.addNewNotification(values);
+    }
+
+    public RiskNotification getNotification(int id) {
+        Log.i(USER_CONTACTS_REPOSITORY_LOG, "Get notification of id " + id);
+        ArrayList<ContentValues> notificationsFromDB = storage.getNotifications(WHERE_BY_ID, new String[]{id + ""}, 1);
+
+        if (notificationsFromDB.isEmpty()) return null;
+
+        return RiskNotificationAdapter.toDomain(notificationsFromDB.get(0));
+    }
+
+    public boolean deleteNotification(int id) {
+        Log.i(USER_CONTACTS_REPOSITORY_LOG, "Delete notification of id " + id);
+
+        return storage.deleteNotification(id) == 1;
     }
 }
