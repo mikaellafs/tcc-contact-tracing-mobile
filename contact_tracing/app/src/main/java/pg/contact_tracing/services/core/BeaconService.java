@@ -1,9 +1,6 @@
 package pg.contact_tracing.services.core;
 
 import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseSettings;
@@ -12,8 +9,6 @@ import android.os.AsyncTask;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
-
-import androidx.core.app.NotificationCompat;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconManager;
@@ -26,13 +21,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import pg.contact_tracing.di.DI;
-import pg.contact_tracing.ui.activities.MainActivity;
-import pg.contact_tracing.R;
+import pg.contact_tracing.utils.NotificationBroadcastCenter;
+import pg.contact_tracing.utils.NotificationCreator;
 import pg.contact_tracing.utils.UserContactsManager;
 import pg.contact_tracing.repositories.UserInformationsRepository;
 
 public class BeaconService extends Service {
-    public static final String CHANNEL_ID = "ForegroundServiceChannel";
     public static final String BEACON_SERVICE_LOG = "BEACON_SERVICE";
     public static final String BEACON_SERVICE_TRANSMIT_LOG = "BEACON_SERVICE_TRANSMIT";
     public static final String BEACON_SERVICE_MONITOR_LOG = "BEACON_SERVICE_MONITOR";
@@ -40,6 +34,8 @@ public class BeaconService extends Service {
     public static boolean isRunning;
 
     private static final long SCAN_PERIOD_INTERVAL = 15000; // 15 sec
+    private static final int id = 1;
+
     private UserContactsManager userContactsManager;
     private UserInformationsRepository userInformationsRepository;
     private String userID;
@@ -79,9 +75,20 @@ public class BeaconService extends Service {
         userID = userInformationsRepository.getID();
         appManufacturer = userInformationsRepository.getAppManufacturer();
 
-        Notification notification = createNotification(intent);
+        Notification notification = NotificationCreator.foregroundServiceNotification;
 
-        startForeground(1, notification);
+        if (notification == null) {
+            stopSelf();
+
+            NotificationBroadcastCenter.sendNotification(
+                    this,
+                    NotificationBroadcastCenter.Event.BEACON_SERVICE_FAILED,
+                    "Could not start tracing contacts"
+            );
+            return START_NOT_STICKY;
+        }
+
+        startForeground(id, notification);
 
         transmitBeacon();
         monitorBeacons();
@@ -104,31 +111,6 @@ public class BeaconService extends Service {
         return null;
     }
 
-    private void createNotificationChannel() {
-        NotificationChannel serviceChannel = new NotificationChannel(
-                CHANNEL_ID,
-                getString(R.string.beacon_service_channel),
-                NotificationManager.IMPORTANCE_DEFAULT
-        );
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        manager.createNotificationChannel(serviceChannel);
-    }
-
-    private Notification createNotification(Intent intent) {
-        String subtitle = intent.getStringExtra(getString(R.string.beacon_notification_subtitle_field));
-        createNotificationChannel();
-
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(getString(R.string.beacon_notification_title))
-                .setContentText(subtitle)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentIntent(pendingIntent)
-                .build();
-    }
-
     private void transmitBeacon(){
         Beacon beacon = new Beacon.Builder()
                 .setId1(userID)
@@ -143,6 +125,13 @@ public class BeaconService extends Service {
             @Override
             public void onStartFailure(int errorCode) {
                 Log.e(BEACON_SERVICE_TRANSMIT_LOG, "Advertisement start failed with code: " + errorCode);
+                stopSelf();
+
+                NotificationBroadcastCenter.sendNotification(
+                        BeaconService.this,
+                        NotificationBroadcastCenter.Event.BEACON_SERVICE_FAILED,
+                        "Could start transmitting beacons"
+                );
             }
 
             @Override

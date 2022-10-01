@@ -20,7 +20,19 @@ public class NotificationBroadcastCenter {
             public String toString() {
                 return "NOT_RISK_NOTIFICATION";
             }
-        }
+        },
+        BEACON_SERVICE_FAILED {
+            @Override
+            public String toString() {
+                return "BEACON_SERVICE_FAILED";
+            }
+        },
+        MQTT_SERVICE_FAILED {
+            @Override
+            public String toString() {
+                return "MQTT_SERVICE_FAILED";
+            }
+        },
     }
 
     public static void sendNotification(Context context, Event event, String message) {

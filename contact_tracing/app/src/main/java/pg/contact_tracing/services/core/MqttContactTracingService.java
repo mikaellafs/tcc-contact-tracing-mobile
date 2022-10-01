@@ -2,6 +2,7 @@ package pg.contact_tracing.services.core;
 
 import static pg.contact_tracing.datasource.sqlite.SQLiteContactsStorageStrings.ORDER_BY_FIRST_CONTACT_ASC;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -34,6 +35,7 @@ import pg.contact_tracing.repositories.UserInformationsRepository;
 import pg.contact_tracing.services.mqtt.MqttClientService;
 import pg.contact_tracing.utils.CryptoManager;
 import pg.contact_tracing.utils.NotificationBroadcastCenter;
+import pg.contact_tracing.utils.NotificationCreator;
 import pg.contact_tracing.utils.UserContactsManager;
 
 public class MqttContactTracingService extends Service implements MqttCallback {
@@ -43,6 +45,7 @@ public class MqttContactTracingService extends Service implements MqttCallback {
     private static final int SEND_CONTACTS_INTERVAL = 10 * 60 * 1000; // 10 minutos
     private static final String SEND_CONTACTS_TOPIC = "contact";
     private static final int SEND_CONTACTS_LIMIT = 30;
+    private static final int id = 1;
 
     private static final String NOTIFICATION_CONSUMER_SERVICE_LOG = "NOTIFICATION_CONSUMER_SERVICE";
     private static final String RECEIVE_NOTIFICATION_BASE_TOPIC = "notification";
@@ -54,9 +57,35 @@ public class MqttContactTracingService extends Service implements MqttCallback {
 
     public static boolean isRunning;
 
+    private IMqttActionListener onConnectionListener;
+
     @Override
     public void onCreate() {
         super.onCreate();
+        isRunning = false;
+
+        onConnectionListener = new IMqttActionListener() {
+            @Override
+            public void onSuccess(IMqttToken asyncActionToken) {
+                Log.i(MQTT_CONTACT_TRACING_SERVICE_LOG, "Success on connecting to broker");
+
+                listenToNotifications();
+                startSendContactsTask();
+            }
+
+            @Override
+            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                Log.e(MQTT_CONTACT_TRACING_SERVICE_LOG, "Failed to connect to broker: " + exception.getMessage());
+                isRunning = false;
+
+                stopSelf();
+                NotificationBroadcastCenter.sendNotification(
+                        MqttContactTracingService.this,
+                        NotificationBroadcastCenter.Event.MQTT_SERVICE_FAILED,
+                        "Could not connect to mqtt broker"
+                );
+            }
+        };
 
         try {
             client = DI.resolve(MqttClientService.class);
@@ -75,52 +104,89 @@ public class MqttContactTracingService extends Service implements MqttCallback {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (helper == null || userId == null) {
+        Notification notification = NotificationCreator.foregroundServiceNotification;
+
+        if (helper == null || userId == null || notification == null) {
             Log.e(CONTACTS_PRODUCER_SERVICE_LOG, "Failed to start service");
             isRunning = false;
 
+            NotificationBroadcastCenter.sendNotification(
+                    MqttContactTracingService.this,
+                    NotificationBroadcastCenter.Event.MQTT_SERVICE_FAILED,
+                    "Could not connect to mqtt broker"
+            );
+
             stopSelf();
             return START_NOT_STICKY;
         }
+
+        startForeground(id, notification);
 
         client.setCallBack(this);
-        Log.i(CONTACTS_PRODUCER_SERVICE_LOG, "Sending contacts service has started!");
-        MqttContactTracingService.isRunning = true;
 
         try {
-            listenToNotifications();
-        } catch (MqttException e) {
+            client.connect(onConnectionListener);
+        } catch(MqttException e) {
+            Log.e(CONTACTS_PRODUCER_SERVICE_LOG, "Failed to start service: " + e.getMessage());
+
             isRunning = false;
+
             stopSelf();
-            return START_NOT_STICKY;
+            NotificationBroadcastCenter.sendNotification(
+                    MqttContactTracingService.this,
+                    NotificationBroadcastCenter.Event.MQTT_SERVICE_FAILED,
+                    "Could not connect to mqtt broker"
+            );
         }
 
-        startSendContactsTask();
+        MqttContactTracingService.isRunning = true;
+        Log.i(CONTACTS_PRODUCER_SERVICE_LOG, "Sending contacts service has started!");
 
         return START_STICKY;
     }
 
     @Override
-    public void onDestroy() {}
+    public void onDestroy() {
+        Log.i(MQTT_CONTACT_TRACING_SERVICE_LOG, "Mqtt service destroyed");
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
-    private void listenToNotifications() throws MqttException {
+    private void listenToNotifications() {
         String topic = RECEIVE_NOTIFICATION_BASE_TOPIC + "/" + userId;
-        client.subscribe(topic, new IMqttActionListener() {
-            @Override
-            public void onSuccess(IMqttToken asyncActionToken) {
-                Log.i(NOTIFICATION_CONSUMER_SERVICE_LOG, "Success on listening to notifications");
-            }
 
-            @Override
-            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                Log.i(NOTIFICATION_CONSUMER_SERVICE_LOG, "Failed to listen to notifications: " + exception.getMessage());
-            }
-        });
+        try {
+            client.subscribe(topic, new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    Log.i(NOTIFICATION_CONSUMER_SERVICE_LOG, "Success on subscribing to topic");
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    Log.i(NOTIFICATION_CONSUMER_SERVICE_LOG, "Failed to subscribe to topic: " + exception.getMessage());
+                    stopSelf();
+
+                    NotificationBroadcastCenter.sendNotification(
+                            MqttContactTracingService.this,
+                            NotificationBroadcastCenter.Event.MQTT_SERVICE_FAILED,
+                            "Could not listen to notifications"
+                    );
+                }
+            });
+        } catch (MqttException e) {
+            Log.e(MQTT_CONTACT_TRACING_SERVICE_LOG, "Could not listen to notifications: ");
+            stopSelf();
+
+            NotificationBroadcastCenter.sendNotification(
+                    MqttContactTracingService.this,
+                    NotificationBroadcastCenter.Event.MQTT_SERVICE_FAILED,
+                    "Could not listen to notifications"
+            );
+        }
     }
 
     private void startSendContactsTask() {
@@ -161,6 +227,13 @@ public class MqttContactTracingService extends Service implements MqttCallback {
     @Override
     public void connectionLost(Throwable cause) {
         Log.e(MQTT_CONTACT_TRACING_SERVICE_LOG, "Lost connection with broker");
+        stopSelf();
+
+        NotificationBroadcastCenter.sendNotification(
+                MqttContactTracingService.this,
+                NotificationBroadcastCenter.Event.MQTT_SERVICE_FAILED,
+                "Lost connection with MQTT broker"
+        );
     }
 
     @Override
