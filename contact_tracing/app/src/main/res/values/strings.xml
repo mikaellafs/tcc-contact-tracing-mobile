@@ -30,4 +30,10 @@
     <string name="password_dialog_cancel_button">Cancelar</string>
     <string name="password_dialog_continue_button">Continuar</string>
 
+    <!-- Batata -->
+    <string name="user_notification_channel_id">UserNotificationChannel</string>
+    <string name="user_notification_channel_name">Push notifications</string>
+    <string name="user_notification_title">Risco de contágio</string>
+    <string name="user_notification_subtitle">Você esteve em contato com alguém diagnosticado com convid-19 nos últimos 15 dias. Saiba mais.</string>
+
 </resources>

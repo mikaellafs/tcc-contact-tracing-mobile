@@ -3,6 +3,7 @@ package pg.contact_tracing.services.core;
 import static pg.contact_tracing.datasource.sqlite.SQLiteContactsStorageStrings.ORDER_BY_FIRST_CONTACT_ASC;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -26,16 +27,19 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import pg.contact_tracing.R;
 import pg.contact_tracing.di.DI;
 import pg.contact_tracing.exceptions.InstanceNotRegisteredDIException;
 import pg.contact_tracing.exceptions.UserInformationNotFoundException;
 import pg.contact_tracing.models.Contact;
+import pg.contact_tracing.models.RiskNotification;
 import pg.contact_tracing.repositories.UserContactsRepository;
 import pg.contact_tracing.repositories.UserInformationsRepository;
 import pg.contact_tracing.services.mqtt.MqttClientService;
 import pg.contact_tracing.utils.CryptoManager;
 import pg.contact_tracing.utils.NotificationBroadcastCenter;
 import pg.contact_tracing.utils.NotificationCreator;
+import pg.contact_tracing.utils.RiskNotificationAdapter;
 import pg.contact_tracing.utils.UserContactsManager;
 
 public class MqttContactTracingService extends Service implements MqttCallback {
@@ -243,12 +247,25 @@ public class MqttContactTracingService extends Service implements MqttCallback {
     public void messageArrived(String topic, MqttMessage message) throws Exception {
         Log.i(NOTIFICATION_CONSUMER_SERVICE_LOG, "Message received from topic '"+ topic + "': " + new String(message.getPayload()));
 
-        JSONObject notification = new JSONObject(message.toString());
-        boolean isUserAtRisk = notification.getBoolean("risk");
-        String notificationMessage = notification.getString("message");
+        try {
+            JSONObject notification = new JSONObject(message.toString());
+            boolean isUserAtRisk = notification.getBoolean("risk");
+            String notificationMessage = notification.getString("message");
 
-        NotificationBroadcastCenter.Event NOTIFICATION_TYPE = isUserAtRisk ? NotificationBroadcastCenter.Event.RISK_NOTIFICATION : NotificationBroadcastCenter.Event.NOT_RISK_NOTIFICATION;
-        NotificationBroadcastCenter.sendNotification(this, NOTIFICATION_TYPE, notificationMessage);
+            if (isUserAtRisk) {
+                RiskNotification risk = RiskNotificationAdapter.fromJSONObject(notification);
+                repository.addNewNotification(risk);
+                showRiskNotification(risk);
+            } else {
+                repository.deleteNotification(1);
+            }
+
+            NotificationBroadcastCenter.Event NOTIFICATION_TYPE = isUserAtRisk ? NotificationBroadcastCenter.Event.RISK_NOTIFICATION : NotificationBroadcastCenter.Event.NOT_RISK_NOTIFICATION;
+            NotificationBroadcastCenter.sendNotification(this, NOTIFICATION_TYPE, notificationMessage);
+        } catch(JSONException e) {
+            Log.e(NOTIFICATION_CONSUMER_SERVICE_LOG, "Failed to parse message received: " + message.toString());
+            return;
+        }
     }
 
     @Override
@@ -266,5 +283,25 @@ public class MqttContactTracingService extends Service implements MqttCallback {
         } catch (MqttException | JSONException e) {
             Log.e(CONTACTS_PRODUCER_SERVICE_LOG, "Failed to get message delivered");
         }
+    }
+
+    private void showRiskNotification(RiskNotification risk){
+        String userNotificationChannelId = getString(R.string.user_notification_channel_id);
+        String userNotificationChannelName = getString(R.string.user_notification_channel_name);
+        String userNotificationTitle = getString(R.string.user_notification_title);
+        String userNotificationSubtitle = getString(R.string.user_notification_subtitle);
+
+        NotificationCreator creator = new NotificationCreator();
+        Notification notification = creator.createNotification(
+                getApplicationContext(),
+                userNotificationChannelId,
+                userNotificationChannelName,
+                userNotificationTitle,
+                userNotificationSubtitle,
+                R.drawable.ic_warning_svgrepo_com
+        );
+
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.notify(NotificationCreator.pushNotificationId, notification);
     }
 }

@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat;
 import pg.contact_tracing.ui.activities.MainActivity;
 
 public class NotificationCreator {
+    public static int pushNotificationId = 3;
     public static Notification foregroundServiceNotification = null;
 
     public Notification createNotification(Context context, String channelId, String channelName, String title, String subtitle, Integer icon) {
