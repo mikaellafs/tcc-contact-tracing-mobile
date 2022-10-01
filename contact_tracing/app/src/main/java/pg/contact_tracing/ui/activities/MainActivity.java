@@ -1,6 +1,7 @@
 package pg.contact_tracing.ui.activities;
 
 import android.Manifest;
+import android.app.Notification;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
@@ -26,9 +27,11 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import java.util.ArrayList;
 
 import pg.contact_tracing.R;
+import pg.contact_tracing.services.managers.MqttContactTracingServiceManager;
 import pg.contact_tracing.ui.fragments.WarningBanner;
-import pg.contact_tracing.utils.BeaconServiceManager;
+import pg.contact_tracing.services.managers.BeaconServiceManager;
 import pg.contact_tracing.utils.NotificationBroadcastCenter;
+import pg.contact_tracing.utils.NotificationCreator;
 
 public class MainActivity extends AppCompatActivity {
     private static final String MAIN_ACTIVITY_LOG = "MAIN_ACTIVITY";
@@ -40,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     private WarningBanner warningBanner;
 
     BeaconServiceManager beaconServiceManager;
+    MqttContactTracingServiceManager mqttServiceManager;
+    NotificationCreator notificationCreator;
 
     private String locationPermission = Manifest.permission.ACCESS_FINE_LOCATION;
     private String bluetoothAdvertisePermission = Manifest.permission.BLUETOOTH_ADVERTISE;
@@ -60,12 +65,36 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    BroadcastReceiver beaconServiceFailed = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mqttServiceManager.stop(MainActivity.this);
+            Log.i(MAIN_ACTIVITY_LOG, "Beacon service failed: "+ intent.getStringExtra("message"));
+
+            tracingSwitch.setChecked(false);
+            Toast.makeText(context, "Não foi possível iniciar o rastreamento, tente novamente mais tarde", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    BroadcastReceiver mqttServiceFailed = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(MAIN_ACTIVITY_LOG, "Mqtt service failed: "+ intent.getStringExtra("message"));
+            beaconServiceManager.stop(MainActivity.this);
+
+            tracingSwitch.setChecked(false);
+            Toast.makeText(context, "Não foi possível iniciar o rastreamento, tente novamente mais tarde", Toast.LENGTH_SHORT).show();
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         beaconServiceManager = new BeaconServiceManager();
+        mqttServiceManager = new MqttContactTracingServiceManager();
+        notificationCreator = new NotificationCreator();
 
         tracingTitle = findViewById(R.id.title_is_tracing);
         tracingSubtitle = findViewById(R.id.subtitle_is_tracing);
@@ -85,7 +114,8 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Context context = getApplicationContext();
 
-                if (isChecked) startTracing(context); else stopTracing(context);
+                if (isChecked) startTracing(context);
+                else stopTracing(context);
             }
         });
     }
@@ -98,6 +128,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Listen to event user at risk - show banner
         NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.RISK_NOTIFICATION, userAtRiskReceiver);
+
+        // Listen to event beacon service has failed
+        NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.BEACON_SERVICE_FAILED, beaconServiceFailed);
+
+        // Listen to event beacon service has failed
+        NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.MQTT_SERVICE_FAILED, mqttServiceFailed);
     }
 
     private void hideWarningBanner() {
@@ -131,10 +167,12 @@ public class MainActivity extends AppCompatActivity {
         BluetoothManager btManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         BluetoothAdapter btAdapter = btManager.getAdapter();
 
-        if (!btAdapter.isEnabled()) {
-            // Show message that bluetooth was turned on
-            // TODO: GET PERMISSIONS BEFORE
-            btAdapter.enable();
+        boolean hasBluetoothConnectPermission = ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
+        int sdkVersion = Build.VERSION.SDK_INT;
+
+        if (!btAdapter.isEnabled() && (sdkVersion <= 30 || hasBluetoothConnectPermission)) {
+                btAdapter.enable();
+            return;
         }
     }
 
@@ -144,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         String[] permissions;
 
         int sdkVersion = Build.VERSION.SDK_INT;
-        if (sdkVersion > 28) {
+        if (sdkVersion > 30) {
             permissions = new String[]{locationPermission, bluetoothAdvertisePermission, bluetoothScanPermission, bluetoothConnectPermission};
         } else {
             permissions = new String[]{locationPermission};
@@ -195,7 +233,19 @@ public class MainActivity extends AppCompatActivity {
         enableBluetooth();
 
         Log.i(MAIN_ACTIVITY_LOG, "Start tracing...");
+
+        Notification notification = notificationCreator.createNotification(
+                context,
+                getString(R.string.contact_tracing_service_channel),
+                getString(R.string.beacon_service_channel),
+                getString(R.string.beacon_notification_title),
+                getString(R.string.beacon_notification_subtitle),
+                null
+        );
+        NotificationCreator.foregroundServiceNotification = notification;
         beaconServiceManager.start(context);
+        mqttServiceManager.start(context);
+
         setToTracingMode();
         return true;
     }
