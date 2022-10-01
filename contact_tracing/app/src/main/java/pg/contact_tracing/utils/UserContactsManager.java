@@ -23,9 +23,8 @@ import pg.contact_tracing.di.DI;
 import pg.contact_tracing.exceptions.UserInformationNotFoundException;
 import pg.contact_tracing.models.Contact;
 import pg.contact_tracing.models.ECSignature;
+import pg.contact_tracing.models.RiskNotification;
 import pg.contact_tracing.repositories.UserContactsRepository;
-import pg.contact_tracing.repositories.UserInformationsRepository;
-import pg.contact_tracing.services.grpc.Signature;
 
 public class UserContactsManager {
     private static String USER_CONTACTS_MANAGER_LOG = "USER_CONTACTS_MANAGER";
@@ -105,6 +104,12 @@ public class UserContactsManager {
         message.put("signature", sig);
 
         return message.toString();
+    }
+
+    public String getBannerMessageIfAtRisk() {
+        RiskNotification notification = repository.getNotification(1);
+
+        return notification == null ? null : notification.getMessage();
     }
 
     private float getBatteryLevel(Context context) {

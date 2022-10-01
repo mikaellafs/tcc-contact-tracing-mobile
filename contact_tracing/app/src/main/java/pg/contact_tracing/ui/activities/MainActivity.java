@@ -2,6 +2,7 @@ package pg.contact_tracing.ui.activities;
 
 import android.Manifest;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
@@ -25,13 +26,17 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import pg.contact_tracing.R;
+import pg.contact_tracing.models.RiskNotification;
 import pg.contact_tracing.services.managers.MqttContactTracingServiceManager;
 import pg.contact_tracing.ui.fragments.WarningBanner;
 import pg.contact_tracing.services.managers.BeaconServiceManager;
 import pg.contact_tracing.utils.NotificationBroadcastCenter;
 import pg.contact_tracing.utils.NotificationCreator;
+import pg.contact_tracing.utils.UserContactsManager;
 
 public class MainActivity extends AppCompatActivity {
     private static final String MAIN_ACTIVITY_LOG = "MAIN_ACTIVITY";
@@ -45,11 +50,12 @@ public class MainActivity extends AppCompatActivity {
     BeaconServiceManager beaconServiceManager;
     MqttContactTracingServiceManager mqttServiceManager;
     NotificationCreator notificationCreator;
+    UserContactsManager userContactsManager;
 
-    private String locationPermission = Manifest.permission.ACCESS_FINE_LOCATION;
-    private String bluetoothAdvertisePermission = Manifest.permission.BLUETOOTH_ADVERTISE;
-    private String bluetoothScanPermission = Manifest.permission.BLUETOOTH_SCAN;
-    private String bluetoothConnectPermission = Manifest.permission.BLUETOOTH_CONNECT;
+    private final String locationPermission = Manifest.permission.ACCESS_FINE_LOCATION;
+    private final String bluetoothAdvertisePermission = Manifest.permission.BLUETOOTH_ADVERTISE;
+    private final String bluetoothScanPermission = Manifest.permission.BLUETOOTH_SCAN;
+    private final String bluetoothConnectPermission = Manifest.permission.BLUETOOTH_CONNECT;
 
     BroadcastReceiver userNotAtRiskReceiver = new BroadcastReceiver() {
         @Override
@@ -65,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    BroadcastReceiver beaconServiceFailed = new BroadcastReceiver() {
+    BroadcastReceiver beaconServiceFailedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             mqttServiceManager.stop(MainActivity.this);
@@ -76,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    BroadcastReceiver mqttServiceFailed = new BroadcastReceiver() {
+    BroadcastReceiver mqttServiceFailedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.i(MAIN_ACTIVITY_LOG, "Mqtt service failed: "+ intent.getStringExtra("message"));
@@ -95,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
         beaconServiceManager = new BeaconServiceManager();
         mqttServiceManager = new MqttContactTracingServiceManager();
         notificationCreator = new NotificationCreator();
+        userContactsManager = new UserContactsManager();
 
         tracingTitle = findViewById(R.id.title_is_tracing);
         tracingSubtitle = findViewById(R.id.subtitle_is_tracing);
@@ -104,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
         setSwitchAction();
         setWarningBanner();
         setReceiversNotification();
+
+        String message = userContactsManager.getBannerMessageIfAtRisk();
+        if (message == null) hideWarningBanner(); else showWarningBanner(message);
     }
 
     private void setSwitchAction() {
@@ -121,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setReceiversNotification() {
-        Log.i(MAIN_ACTIVITY_LOG, "Setting receivers about user at risk to show or hide banner");
+        Log.i(MAIN_ACTIVITY_LOG, "Setting broadcast receivers");
 
         // Listen to event user not at risk - hide banner
         NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.NOT_RISK_NOTIFICATION, userNotAtRiskReceiver);
@@ -130,10 +140,10 @@ public class MainActivity extends AppCompatActivity {
         NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.RISK_NOTIFICATION, userAtRiskReceiver);
 
         // Listen to event beacon service has failed
-        NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.BEACON_SERVICE_FAILED, beaconServiceFailed);
+        NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.BEACON_SERVICE_FAILED, beaconServiceFailedReceiver);
 
         // Listen to event beacon service has failed
-        NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.MQTT_SERVICE_FAILED, mqttServiceFailed);
+        NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.MQTT_SERVICE_FAILED, mqttServiceFailedReceiver);
     }
 
     private void hideWarningBanner() {
@@ -149,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.show(warningBanner);
-        ft.commit();
+        ft.commitAllowingStateLoss();
 
         warningBanner.setMessage(message);
     }
@@ -158,7 +168,6 @@ public class MainActivity extends AppCompatActivity {
         warningBanner = new WarningBanner();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.banner, warningBanner);
-
         ft.commit();
     }
 
@@ -167,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
         BluetoothManager btManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         BluetoothAdapter btAdapter = btManager.getAdapter();
 
-        boolean hasBluetoothConnectPermission = ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
+        boolean hasBluetoothConnectPermission = ActivityCompat.checkSelfPermission(this, bluetoothConnectPermission) == PackageManager.PERMISSION_GRANTED;
         int sdkVersion = Build.VERSION.SDK_INT;
 
         if (!btAdapter.isEnabled() && (sdkVersion <= 30 || hasBluetoothConnectPermission)) {
@@ -274,6 +283,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(userAtRiskReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(userNotAtRiskReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(beaconServiceFailedReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mqttServiceFailedReceiver);
         super.onDestroy();
     }
 }
