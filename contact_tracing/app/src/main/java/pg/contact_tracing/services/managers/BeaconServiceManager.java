@@ -1,5 +1,6 @@
-package pg.contact_tracing.utils;
+package pg.contact_tracing.services.managers;
 
+import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -14,11 +15,6 @@ public class BeaconServiceManager {
 
     public void start(Context context) {
         Intent serviceIntent = new Intent(context, BeaconService.class);
-
-        serviceIntent.putExtra(
-                context.getString(R.string.beacon_notification_subtitle_field),
-                context.getString(R.string.beacon_notification_subtitle)
-        );
 
         ContextCompat.startForegroundService(context, serviceIntent);
         Log.i(BEACON_SERVICE_MANAGER_LOG,"Start service");
