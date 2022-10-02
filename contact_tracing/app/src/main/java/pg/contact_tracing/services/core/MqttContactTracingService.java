@@ -102,7 +102,7 @@ public class MqttContactTracingService extends Service implements MqttCallback {
             helper = new UserContactsManager(repository, cryptoManager);
 
         } catch (InstanceNotRegisteredDIException e) {
-            Log.e(MQTT_CONTACT_TRACING_SERVICE_LOG, "Failed to resolve dependency: " + e.toString());
+            Log.e(MQTT_CONTACT_TRACING_SERVICE_LOG, "Failed to resolve dependency: " + e.getMessage());
         }
     }
 
