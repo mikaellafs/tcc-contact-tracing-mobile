@@ -19,6 +19,7 @@ import org.altbeacon.beacon.Region;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Locale;
 
 import pg.contact_tracing.di.DI;
 import pg.contact_tracing.utils.NotificationBroadcastCenter;
@@ -38,7 +39,7 @@ public class BeaconService extends Service {
 
     private UserContactsManager userContactsManager;
     private UserInformationsRepository userInformationsRepository;
-    private String userID;
+    private String userID = "";
     private int appManufacturer;
 
     private BeaconTransmitter beaconTransmitter;
@@ -51,6 +52,7 @@ public class BeaconService extends Service {
 
         try {
             userInformationsRepository = DI.resolve(UserInformationsRepository.class);
+            userID = makeToken(userInformationsRepository.getID());
         } catch (Exception e) {
             Log.e(BEACON_SERVICE_LOG, "Failed to resolve userInformation Repository: " + e);
         }
@@ -64,7 +66,7 @@ public class BeaconService extends Service {
         // Beacon monitoring
         ArrayList<Identifier> identifiers = new ArrayList<>();
         identifiers.add(null);
-        region = new Region("aaa", identifiers);
+        region = new Region(userID, identifiers);
         beaconManager = BeaconManager.getInstanceForApplication(this);
 
         BeaconService.isRunning = false;
@@ -72,7 +74,6 @@ public class BeaconService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        userID = userInformationsRepository.getID();
         appManufacturer = userInformationsRepository.getAppManufacturer();
 
         Notification notification = NotificationCreator.foregroundServiceNotification;
@@ -146,13 +147,14 @@ public class BeaconService extends Service {
 
         try {
             beaconManager.setForegroundScanPeriod(SCAN_PERIOD_INTERVAL);
+            beaconManager.setForegroundBetweenScanPeriod(SCAN_PERIOD_INTERVAL);
             beaconManager.updateScanPeriods();
         } catch (RemoteException e) {
             Log.e(BEACON_SERVICE_MONITOR_LOG, "Failed to update scan interval: " + e);
         }
 
         beaconManager.addRangeNotifier((beacons, region) -> {
-            Log.i(BEACON_SERVICE_MONITOR_LOG, "Beacons find: " + beacons.size());
+            Log.i(BEACON_SERVICE_MONITOR_LOG, "Beacons found: " + beacons.size());
 
             if (beacons.size() > 0) {
                 for (Beacon beacon: beacons) {
@@ -160,7 +162,7 @@ public class BeaconService extends Service {
 
                     Log.i(BEACON_SERVICE_MONITOR_LOG, "didRangeBeaconsInRegion, beacon = " + beacon.toString());
 
-                    if (beacon.getDistance() <= 1.0) {
+                    if (beacon.getDistance() <= 5.0) {
                         Log.i(BEACON_SERVICE_MONITOR_LOG, "Very close beacon: " + beacon.getDistance());
                     } else {
                         Log.i(BEACON_SERVICE_MONITOR_LOG, "Far beacon, discard: " + beacon.getDistance());
@@ -175,7 +177,21 @@ public class BeaconService extends Service {
     }
 
     private void saveBeacon(Beacon beacon) {
+        Log.i(BEACON_SERVICE_MONITOR_LOG, "Save beacon received: " + beacon.getId1());
         AsyncTask.execute(() -> userContactsManager.saveBeacon(beacon, getApplicationContext()));
+    }
+
+    // AltBeacon token format: [8 HEX_NUMBERS]-[4 HEX_NUMBERS]-[4 HEX_NUMBERS]-[4 HEX_NUMBERS]-[12 HEX_NUMBERS]
+    // 16 bytes
+    // Example: "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6"
+    private String makeToken(String id) {
+        String token = id.toUpperCase();
+        token = token.substring(0, 8) + "-" + token.substring(8, 12) + "-"
+                + token.substring(12, 16) + "-" + token.substring(16, 20) + "-"
+                + token.substring(20, 32);
+
+        Log.i(BEACON_SERVICE_LOG, "User token created: " + token);
+        return token;
     }
 }
 

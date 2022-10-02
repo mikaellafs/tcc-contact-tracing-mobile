@@ -11,8 +11,8 @@
     <string name="contact_tracing_service_channel">ContactTracingServiceChannel</string>
     <string name="beacon_service_channel">Beacon Service Channel</string>
 
-    <string name="beacon_notification_title">Beacon Service</string>
-    <string name="beacon_notification_subtitle">Transmitindo e monitorando beacons</string>
+    <string name="beacon_notification_title">Rastreamento de contato</string>
+    <string name="beacon_notification_subtitle">Identificando contatos...</string>
     <string name="beacon_notification_subtitle_field">subtitle</string>
 
     <string name="launching_subtitle">Um sistema de rastreamento de contato anônimo para covid-19.</string>
