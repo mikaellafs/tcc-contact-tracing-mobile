@@ -37,7 +37,7 @@ public class CryptoManager {
         try {
             userInformationsRepository = DI.resolve(UserInformationsRepository.class);
         } catch (InstanceNotRegisteredDIException e) {
-            Log.e(CRYPTO_MANAGER_LOG, e.toString());
+            Log.e(CRYPTO_MANAGER_LOG, e.getMessage());
             userInformationsRepository = null;
             System.exit(1);
         }
@@ -51,12 +51,18 @@ public class CryptoManager {
         return Base64.decode(key, Base64.DEFAULT);
     }
 
-    public String toSha256(String str) throws NoSuchAlgorithmException {
+    public static byte[] toSha256(String str) throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         messageDigest.update(str.getBytes());
-        String stringHash = new String(messageDigest.digest());
 
-        return stringHash;
+        return messageDigest.digest();
+    }
+
+    public static byte[] toSha128(String str) throws NoSuchAlgorithmException {
+        MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+        messageDigest.update(str.getBytes());
+
+        return messageDigest.digest();
     }
 
     public String generateKeyPair() throws NoSuchAlgorithmException {

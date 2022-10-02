@@ -1,29 +1,56 @@
 package pg.contact_tracing.repositories;
 
 import android.content.Context;
+import android.provider.Settings;
+import android.util.Log;
+
+import java.security.NoSuchAlgorithmException;
+
+import org.apache.commons.codec.binary.Hex;
 
 import pg.contact_tracing.exceptions.UserInformationNotFoundException;
 import pg.contact_tracing.models.LocalStorageKey;
 import pg.contact_tracing.datasource.sharedpreferences.SharedPreferencesStorage;
+import pg.contact_tracing.utils.CryptoManager;
 
 public class UserInformationsRepository {
+    private static final String USER_INFORMATIONS_REPOSITORY_LOG = "USER_INFORMATIONS_REPOSITORY";
     SharedPreferencesStorage storage;
+    Context context;
 
     public UserInformationsRepository(Context context) {
+        this.context = context;
         storage = new SharedPreferencesStorage(context, LocalStorageKey.USER_INFO_STORAGE);
     }
+
+    // Get android id sha256 encoded hexadecimal string
     public String getID() {
-        return "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6";
-//        String uuid = storage.getValue(LocalStorageKey.USER_UUID);
-//
-//        if (uuid == "") {
-//            throw new UserInformationNotFoundException("Could not find UUID");
-//        }
-//        return uuid;
+        clearInfos();
+        String id = storage.getValue(LocalStorageKey.USER_ID);
+
+        if (id == "") {
+            String androidId = Settings.Secure.getString(context.getContentResolver(),Settings.Secure.ANDROID_ID);
+            Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Android ID: " + androidId);
+
+            try {
+                byte[] hashAndroidID = CryptoManager.toSha128(androidId);
+                String hexAndroidID = Hex.encodeHexString(hashAndroidID);
+
+                saveID(hexAndroidID);
+                id = hexAndroidID;
+                Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Hash HEX Android ID: " + hexAndroidID);
+            } catch (NoSuchAlgorithmException e) {
+                Log.e(USER_INFORMATIONS_REPOSITORY_LOG, "Failed to get Android ID hash");
+                id = "";
+            }
+        }
+
+        Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Get user id: " + id);
+        return id;
     }
 
-    public void saveUUID(String uuid) {
-        storage.saveValue(LocalStorageKey.USER_UUID, uuid);
+    public void saveID(String id) {
+        storage.saveValue(LocalStorageKey.USER_ID, id);
     }
 
     public String getPrivateKey() throws UserInformationNotFoundException {
