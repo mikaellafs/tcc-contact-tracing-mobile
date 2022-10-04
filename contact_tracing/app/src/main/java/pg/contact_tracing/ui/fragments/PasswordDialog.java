@@ -1,9 +1,6 @@
 package pg.contact_tracing.ui.fragments;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.fragment.app.DialogFragment;
@@ -19,8 +16,8 @@ import pg.contact_tracing.R;
 
 public class PasswordDialog extends DialogFragment {
     public interface PasswordDialogListener {
-        void onDialogPositiveClick(PasswordDialog dialog);
-        void onDialogNegativeClick(PasswordDialog dialog);
+        void onPasswordDialogPositiveClick(PasswordDialog dialog);
+        void onPasswordDialogNegativeClick(PasswordDialog dialog);
     }
 
     private EditText passwordField;
@@ -45,12 +42,12 @@ public class PasswordDialog extends DialogFragment {
         prompt = view.findViewById(R.id.password_prompt);
 
         Button continueButton = view.findViewById(R.id.continue_register_button);
-        continueButton.setOnClickListener(v -> listener.onDialogPositiveClick(this));
+        continueButton.setOnClickListener(v -> listener.onPasswordDialogPositiveClick(this));
 
         Button cancelButton = view.findViewById(R.id.cancel_register_button);
         cancelButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-               listener.onDialogNegativeClick(PasswordDialog.this);
+               listener.onPasswordDialogNegativeClick(PasswordDialog.this);
                dismiss();
             }
         });

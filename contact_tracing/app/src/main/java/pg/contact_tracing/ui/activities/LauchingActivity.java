@@ -30,6 +30,7 @@ import pg.contact_tracing.repositories.GrpcApiRepository;
 import pg.contact_tracing.repositories.UserInformationsRepository;
 import pg.contact_tracing.ui.fragments.PasswordDialog;
 import pg.contact_tracing.utils.CryptoManager;
+import pg.contact_tracing.utils.adapters.UserAdapter;
 
 public class LauchingActivity extends AppCompatActivity implements PasswordDialog.PasswordDialogListener {
     static private final String LAUCHING_ACTIVITY_LOG = "LAUCHING_ACTIVITY";
@@ -63,6 +64,7 @@ public class LauchingActivity extends AppCompatActivity implements PasswordDialo
         new Timer().schedule(new TimerTask(){
             @Override
             public void run(){
+                // goToHomeScreen();
                 registerOrHomeScreen();
             }
         }, LAUCHING_SCREEN_DELAY);
@@ -137,9 +139,11 @@ public class LauchingActivity extends AppCompatActivity implements PasswordDialo
         String pk = cryptoManager.generateKeyPair();
         String id = userInformationsRepository.getID();
 
-        User user = new User(id, pk);
-        ECSignature signature = cryptoManager.sign(id);
-        return apiRepository.registerUser(user, signature, password);
+        User user = new User(id, pk, password);
+        String userJsonStr = UserAdapter.toJSONObject(user).toString();
+
+        ECSignature signature = cryptoManager.sign(userJsonStr);
+        return apiRepository.registerUser(user, signature);
     }
 
     private void goToHomeScreen() {
@@ -167,7 +171,7 @@ public class LauchingActivity extends AppCompatActivity implements PasswordDialo
     }
 
     @Override
-    public void onDialogPositiveClick(PasswordDialog dialog) {
+    public void onPasswordDialogPositiveClick(PasswordDialog dialog) {
         Log.i(LAUCHING_ACTIVITY_LOG, "Password dialog register click");
 
         boolean isValid = validateFields(dialog);
@@ -178,7 +182,7 @@ public class LauchingActivity extends AppCompatActivity implements PasswordDialo
     }
 
     @Override
-    public void onDialogNegativeClick(PasswordDialog dialog) {
+    public void onPasswordDialogNegativeClick(PasswordDialog dialog) {
         Log.i(LAUCHING_ACTIVITY_LOG, "Password dialog negative click");
     }
 
