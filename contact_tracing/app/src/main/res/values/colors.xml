@@ -12,4 +12,5 @@
     <color name="brand">#3C6E71</color>
     <color name="brand_light">#DEECED</color>
     <color name="brand_dark">#353535</color>
+    <color name="light_red">#FF7777</color>
 </resources>
