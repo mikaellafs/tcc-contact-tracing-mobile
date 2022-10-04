@@ -11,27 +11,26 @@ service ContactTracing {
 }
 
 message RegisterRequest {
-    User user = 1;
-    Signature signature = 2;
+    Register register = 1;
+    bytes signature = 2;
+}
+
+message Register {
+    string userId = 1;
+    string pk = 2;
     string password = 3;
 }
 
 message ReportRequest {
-    User user = 1;
-    Signature signature = 2;
-    google.protobuf.Timestamp dateStartSymptoms = 3;
-    google.protobuf.Timestamp dateDiagnostic = 4;
-    google.protobuf.Timestamp dateReport = 5;
+    Report report = 1;
+    bytes signature = 2;
 }
 
-message User {
-  string id = 1;
-  string publicKey = 2;
-}
-
-message Signature {
-  bytes signature = 1;
-  string message = 2;
+message Report {
+    string userId = 1;
+    google.protobuf.Timestamp dateStartSymptoms = 2;
+    google.protobuf.Timestamp dateDiagnostic = 3;
+    google.protobuf.Timestamp dateReport = 4;
 }
 
 message RegisterResult {
@@ -39,6 +38,7 @@ message RegisterResult {
   string message = 2;
   string serverPk = 3;
 }
+
 message ReportResult {
   int32 status = 1;
   string message = 2;

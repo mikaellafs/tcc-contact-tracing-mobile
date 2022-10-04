@@ -22,21 +22,18 @@ public class GrpcService {
         blockingStub = ContactTracingGrpc.newBlockingStub(mChannel);
     }
 
-    public RegisterResult registerUser(String id, String publicKey, ByteString sig, String messageSigned, String password) {
+    public RegisterResult registerUser(String id, String publicKey, String password, ByteString sig) {
         Log.i(GRPC_SERVICE_LOG, "Register user: " + id);
-        User user = User.newBuilder()
-                .setId(id)
-                .setPublicKey(publicKey)
-                .build();
-        Signature signature = Signature.newBuilder()
-                .setSignature(sig)
-                .setMessage(messageSigned)
+
+        Register register = Register.newBuilder()
+                .setUserId(id)
+                .setPk(publicKey)
+                .setPassword(password)
                 .build();
 
         RegisterRequest request = RegisterRequest.newBuilder()
-                .setUser(user)
-                .setSignature(signature)
-                .setPassword(password)
+                .setRegister(register)
+                .setSignature(sig)
                 .build();
 
         return blockingStub.register(request);
@@ -44,22 +41,12 @@ public class GrpcService {
 
     public ReportResult reportInfection(
             String id,
-            String publicKey,
-            ByteString sig,
-            String messageSigned,
             long dateStartMillis,
             long dateDiagnosticMillis,
-            long dateReportMillis
+            long dateReportMillis,
+            ByteString sig
     ) {
         Log.i(GRPC_SERVICE_LOG, "Report infection: " + id);
-        User user = User.newBuilder()
-                .setId(id)
-                .setPublicKey(publicKey)
-                .build();
-        Signature signature = Signature.newBuilder()
-                .setSignature(sig)
-                .setMessage(messageSigned)
-                .build();
 
         Timestamp startSympt = Timestamp.newBuilder()
                 .setSeconds(dateStartMillis / 1000)
@@ -76,12 +63,16 @@ public class GrpcService {
                 .setNanos((int) ((dateReportMillis % 1000) * 1000000))
                 .build();
 
-        ReportRequest request = ReportRequest.newBuilder()
-                .setUser(user)
-                .setSignature(signature)
-                .setDateStartSymptoms(startSympt)
-                .setDateDiagnostic(diagnosticDate)
+        Report report = Report.newBuilder()
+                .setUserId(id)
                 .setDateReport(reportDate)
+                .setDateDiagnostic(diagnosticDate)
+                .setDateStartSymptoms(startSympt)
+                .build();
+
+        ReportRequest request = ReportRequest.newBuilder()
+                .setReport(report)
+                .setSignature(sig)
                 .build();
 
         return blockingStub.reportInfection(request);
