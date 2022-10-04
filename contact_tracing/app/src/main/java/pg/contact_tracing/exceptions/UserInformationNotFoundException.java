@@ -6,7 +6,9 @@ public class UserInformationNotFoundException extends Exception {
     public UserInformationNotFoundException(String str) {
         message = str;
     }
-    public String toString() {
+
+    @Override
+    public String getMessage() {
         return ("User information not found: " + message);
     }
 }

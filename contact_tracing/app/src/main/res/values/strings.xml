@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ContactTracing</string>
+    <string name="app_name">Contact Tracing</string>
     <string name="banner_infection_risk_title">Risco de contágio</string>
     <string name="banner_infection_risk_subtitle">Uma pessoa com quem teve contato nos últimos 14 dias foi diagnosticada com covid-19. A recomendação é procurar o centro de testagem mais próximo e fazer isolamento social.</string>
 
@@ -8,10 +8,45 @@
     <string name="main_tracing_inactive_title">Rastreamento desativado</string>
     <string name="main_tracing_inactive_subtitle">Modo detecção de contato desativado. Se alguém com quem teve contato testar positivo, você não será notificado. Toque para ativar.</string>
 
-    <string name="notification_subtitle"></string>
-
+    <string name="contact_tracing_service_channel">ContactTracingServiceChannel</string>
     <string name="beacon_service_channel">Beacon Service Channel</string>
-    <string name="beacon_notification_title">Beacon Service</string>
-    <string name="beacon_notification_subtitle">Transmitindo e monitorando beacons</string>
+
+    <string name="beacon_notification_title">Rastreamento de contato</string>
+    <string name="beacon_notification_subtitle">Identificando contatos...</string>
     <string name="beacon_notification_subtitle_field">subtitle</string>
+
+    <string name="launching_subtitle">Um sistema de rastreamento de contato anônimo para covid-19.</string>
+    <string name="lauching_title_register">Registre-se</string>
+    <string name="lauching_subtitle_register">Registre-se e mantenha-se informado em caso de risco de contágio.</string>
+    <string name="lauching_button">Começar</string>
+
+    <!--  Password dilog  -->
+    <string name="password_dialog_title">Crie uma senha</string>
+    <string name="password_dialog_subtitle">Se você já utilizou o app, basta inserir a senha que já cadastrou anteriormente.</string>
+    <string name="password_dialog_password_text">Senha</string>
+    <string name="password_dialog_repeat_password_text">Repita a senha</string>
+    <string name="password_dialog_prompt_different_password">As senhas não coincidem</string>
+    <string name="password_dialog_prompt_password_size">A senha deve ter no mínimo 8 caracteres e no máximo 16 </string>
+    <string name="password_dialog_cancel_button">Cancelar</string>
+    <string name="password_dialog_continue_button">Continuar</string>
+
+    <!-- Risk notification -->
+    <string name="user_notification_channel_id">UserNotificationChannel</string>
+    <string name="user_notification_channel_name">Push notifications</string>
+    <string name="user_notification_title">Risco de contágio</string>
+    <string name="user_notification_subtitle">Você esteve em contato com alguém diagnosticado com convid-19 nos últimos 15 dias. Saiba mais.</string>
+
+    <!-- Report infection-->
+    <string name="report_infection_button">Reportar</string>
+    <string name="report_infection_title">Diagnoticado com covid-19?</string>
+    <string name="report_infection_text">Avise anonimamente às pessoas com quem teve contato.</string>
+
+    <!-- Report infection dialog -->
+    <string name="report_infection_dialog_title">Reportar covid-19</string>
+    <string name="report_infection_dialog_date_symptoms">Data de início dos sintomas</string>
+    <string name="report_infection_dialog_date_diagnostic">Data do diagnótico (resultado positivo).</string>
+    <string name="report_infection_dialog_cancel_button">Cancelar</string>
+    <string name="report_infection_dialog_continue_button">Continuar</string>
+    <string name="placeholder_date">__/__/__</string>
+
 </resources>

@@ -1,4 +1,4 @@
-package pg.contact_tracing.datasource.local;
+package pg.contact_tracing.datasource.sharedpreferences;
 
 import android.content.Context;
 import android.content.SharedPreferences;

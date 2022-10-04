@@ -1,33 +1,60 @@
 package pg.contact_tracing.repositories;
 
 import android.content.Context;
+import android.provider.Settings;
+import android.util.Log;
+
+import java.security.NoSuchAlgorithmException;
+
+import org.apache.commons.codec.binary.Hex;
 
 import pg.contact_tracing.exceptions.UserInformationNotFoundException;
 import pg.contact_tracing.models.LocalStorageKey;
-import pg.contact_tracing.datasource.local.SharedPreferencesStorage;
+import pg.contact_tracing.datasource.sharedpreferences.SharedPreferencesStorage;
+import pg.contact_tracing.utils.CryptoManager;
 
 public class UserInformationsRepository {
-    SharedPreferencesStorage repository;
+    private static final String USER_INFORMATIONS_REPOSITORY_LOG = "USER_INFORMATIONS_REPOSITORY";
+    SharedPreferencesStorage storage;
+    Context context;
 
     public UserInformationsRepository(Context context) {
-        repository = new SharedPreferencesStorage(context, LocalStorageKey.USER_INFO_STORAGE);
-    }
-    public String getUUID() throws UserInformationNotFoundException {
-        return "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6";
-//        String uuid = repository.getValue(LocalStorageKey.USER_UUID);
-//
-//        if (uuid == "") {
-//            throw new UserInformationNotFoundException("Could not find UUID");
-//        }
-//        return uuid;
+        this.context = context;
+        storage = new SharedPreferencesStorage(context, LocalStorageKey.USER_INFO_STORAGE);
     }
 
-    public void saveUUID(String uuid) {
-        repository.saveValue(LocalStorageKey.USER_UUID, uuid);
+    // Get android id sha256 encoded hexadecimal string
+    public String getID() {
+        clearInfos();
+        String id = storage.getValue(LocalStorageKey.USER_ID);
+
+        if (id == "") {
+            String androidId = Settings.Secure.getString(context.getContentResolver(),Settings.Secure.ANDROID_ID);
+            Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Android ID: " + androidId);
+
+            try {
+                byte[] hashAndroidID = CryptoManager.toSha128(androidId);
+                String hexAndroidID = Hex.encodeHexString(hashAndroidID);
+
+                saveID(hexAndroidID);
+                id = hexAndroidID;
+                Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Hash HEX Android ID: " + hexAndroidID);
+            } catch (NoSuchAlgorithmException e) {
+                Log.e(USER_INFORMATIONS_REPOSITORY_LOG, "Failed to get Android ID hash");
+                id = "";
+            }
+        }
+
+        Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Get user id: " + id);
+        return id;
     }
 
-    public String getPrivateKey() throws  UserInformationNotFoundException {
-        String sk = repository.getValue(LocalStorageKey.USER_PRIVATE_KEY);
+    public void saveID(String id) {
+        storage.saveValue(LocalStorageKey.USER_ID, id);
+    }
+
+    public String getPrivateKey() throws UserInformationNotFoundException {
+        String sk = storage.getValue(LocalStorageKey.USER_PRIVATE_KEY);
 
         if (sk == "") {
             throw new UserInformationNotFoundException("Could not find private key");
@@ -36,11 +63,11 @@ public class UserInformationsRepository {
     }
 
     public void savePrivateKey(String key) {
-        repository.saveValue(LocalStorageKey.USER_PRIVATE_KEY, key);
+        storage.saveValue(LocalStorageKey.USER_PRIVATE_KEY, key);
     }
 
     public String getPublicKey() throws UserInformationNotFoundException {
-        String pk = repository.getValue(LocalStorageKey.USER_PUBLIC_KEY);
+        String pk = storage.getValue(LocalStorageKey.USER_PUBLIC_KEY);
 
         if (pk == "") {
             throw new UserInformationNotFoundException("Could not find public key");
@@ -49,7 +76,20 @@ public class UserInformationsRepository {
     }
 
     public void savePublicKey(String key) {
-        repository.saveValue(LocalStorageKey.USER_PRIVATE_KEY, key);
+        storage.saveValue(LocalStorageKey.USER_PUBLIC_KEY, key);
+    }
+
+    public String getServerPublicKey() throws UserInformationNotFoundException {
+        String pk = storage.getValue(LocalStorageKey.SERVER_PUBLIC_KEY);
+
+        if (pk == "") {
+            throw new UserInformationNotFoundException("Could not find server public key");
+        }
+        return pk;
+    }
+
+    public void saveServerPublicKey(String key) {
+        storage.saveValue(LocalStorageKey.SERVER_PUBLIC_KEY, key);
     }
 
     public int getAppManufacturer() {
@@ -58,6 +98,6 @@ public class UserInformationsRepository {
     }
 
     public void clearInfos() {
-        repository.clearStorage();
+        storage.clearStorage();
     }
 }

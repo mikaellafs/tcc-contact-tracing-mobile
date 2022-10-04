@@ -8,10 +8,10 @@ public enum LocalStorageKey {
         }
 
     },
-    USER_UUID {
+    USER_ID {
         @Override
         public String toString() {
-            return "CONTACT_TRACING_USER_UUID";
+            return "CONTACT_TRACING_USER_ID";
         }
     },
     USER_PRIVATE_KEY {
@@ -24,6 +24,12 @@ public enum LocalStorageKey {
         @Override
         public String toString() {
             return "CONTACT_TRACING_USER_PK";
+        }
+    },
+    SERVER_PUBLIC_KEY {
+        @Override
+        public String toString() {
+            return "CONTACT_TRACING_SERVER_PK";
         }
     },
     USER_CONTACTS_STORAGE {

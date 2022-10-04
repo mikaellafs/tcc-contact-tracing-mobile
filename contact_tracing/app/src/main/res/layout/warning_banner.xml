@@ -21,7 +21,7 @@
             android:layout_height="match_parent"
             android:layout_marginRight="8dp"
             android:layout_weight="1"
-            android:background="#FF7777" />
+            android:background="@color/light_red" />
 
         <ImageView
             android:id="@+id/imageView"
