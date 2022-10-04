@@ -12,6 +12,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -26,19 +28,34 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import pg.contact_tracing.R;
+import pg.contact_tracing.di.DI;
+import pg.contact_tracing.exceptions.InstanceNotRegisteredDIException;
+import pg.contact_tracing.exceptions.UserInformationNotFoundException;
+import pg.contact_tracing.models.ApiResult;
+import pg.contact_tracing.models.ECSignature;
+import pg.contact_tracing.models.Report;
 import pg.contact_tracing.models.RiskNotification;
+import pg.contact_tracing.models.User;
+import pg.contact_tracing.repositories.GrpcApiRepository;
+import pg.contact_tracing.repositories.UserInformationsRepository;
 import pg.contact_tracing.services.managers.MqttContactTracingServiceManager;
+import pg.contact_tracing.ui.fragments.PasswordDialog;
+import pg.contact_tracing.ui.fragments.ReportDateDialog;
 import pg.contact_tracing.ui.fragments.WarningBanner;
 import pg.contact_tracing.services.managers.BeaconServiceManager;
+import pg.contact_tracing.utils.CryptoManager;
 import pg.contact_tracing.utils.NotificationBroadcastCenter;
 import pg.contact_tracing.utils.NotificationCreator;
 import pg.contact_tracing.utils.UserContactsManager;
+import pg.contact_tracing.utils.adapters.ReportAdapter;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ReportDateDialog.ReportDateDialogListener {
     private static final String MAIN_ACTIVITY_LOG = "MAIN_ACTIVITY";
     private Switch tracingSwitch;
     private TextView tracingTitle;
@@ -109,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
         tracingSwitch = findViewById(R.id.tracing_switch);
 
         setSwitchAction();
+        setReportAction();
         setWarningBanner();
         setReceiversNotification();
 
@@ -126,6 +144,16 @@ public class MainActivity extends AppCompatActivity {
 
                 if (isChecked) startTracing(context);
                 else stopTracing(context);
+            }
+        });
+    }
+
+    private void setReportAction() {
+        Button reportButton = findViewById(R.id.report_infection_button);
+        reportButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showReportDateDialog();
             }
         });
     }
@@ -262,6 +290,7 @@ public class MainActivity extends AppCompatActivity {
     public void stopTracing(Context context) {
         Log.i(MAIN_ACTIVITY_LOG, "Stop tracing...");
         beaconServiceManager.stop(context);
+        mqttServiceManager.stop(context);
         setToNotTracingMode();
     }
 
@@ -277,6 +306,65 @@ public class MainActivity extends AppCompatActivity {
         tracingTitle.setText(R.string.main_tracing_inactive_title);
         tracingSubtitle.setText(R.string.main_tracing_inactive_subtitle);
         tracingImage.setBackgroundResource(R.drawable.illustration_not_tracing);
+    }
+
+    public void showReportDateDialog() {
+        ReportDateDialog reportDateDialog = new ReportDateDialog();
+        reportDateDialog.show(getSupportFragmentManager(), "ReportDateDialog");
+    }
+
+    private void reportInfection(Date dateStartSymptoms, Date dateDiagnostic) {
+        Log.i(MAIN_ACTIVITY_LOG, "Report infection, diagnostic date: " + dateDiagnostic.toString());
+        try {
+            GrpcApiRepository apiRepo = DI.resolve(GrpcApiRepository.class);
+            UserInformationsRepository userInfoRepo = DI.resolve(UserInformationsRepository.class);
+            CryptoManager cryptoManager = DI.resolve(CryptoManager.class);
+
+            String id = userInfoRepo.getID();
+            Report report = new Report(id, dateStartSymptoms, dateDiagnostic, new Date());
+            String reportString = ReportAdapter.toJSONObject(report).toString();
+
+            ECSignature signature = cryptoManager.sign(reportString);
+            ApiResult result = apiRepo.reportInfection(report, signature);
+
+            if (result.getCode() != 200) {
+                Log.i(MAIN_ACTIVITY_LOG, "Failed to report infection, status " + result.getCode() + ":" + result.getMessage());
+                Toast.makeText(MainActivity.this, "Não foi possível reportar. Tente novamente mais tarde", Toast.LENGTH_SHORT).show();
+            } else {
+                Log.i(MAIN_ACTIVITY_LOG, "Infection reported successfully :" + result.getMessage());
+                Toast.makeText(MainActivity.this, "Diagnótisco reportado!", Toast.LENGTH_SHORT).show();
+            }
+        } catch (InstanceNotRegisteredDIException e) {
+            Log.e(MAIN_ACTIVITY_LOG, "Failed to report infection: " + e.getMessage());
+            Toast.makeText(MainActivity.this, "Não foi possível reportar. Tente novamente mais tarde", Toast.LENGTH_SHORT).show();
+        } catch (UserInformationNotFoundException e) {
+            Log.e(MAIN_ACTIVITY_LOG, "Public key not found, must restart app: " + e.getMessage());
+            Toast.makeText(MainActivity.this, "Ocorreu um erro, por favor reinicie o app.", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+
+        }
+    }
+
+    @Override
+    public void onReportDialogPositiveClick(ReportDateDialog dialog) {
+        Log.i(MAIN_ACTIVITY_LOG, "Report date dialog positive click");
+        Calendar start = dialog.getStartDate();
+        Calendar diagnostic = dialog.getDiagnosticDate();
+
+        if (start == null || diagnostic == null ) {
+            Log.e(MAIN_ACTIVITY_LOG, "Date diagnostic or date start is null");
+            Toast.makeText(this, "Preencha todas as datas", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Log.i(MAIN_ACTIVITY_LOG, "Start symptoms date: " + start.getTime().toString() + ", diagnostic date: " + diagnostic.getTime());
+        reportInfection(start.getTime(), diagnostic.getTime());
+        dialog.dismiss();
+    }
+
+    @Override
+    public void onReportDialogNegativeClick(ReportDateDialog dialog) {
+        Log.i(MAIN_ACTIVITY_LOG, "Report date dialog negative click");
     }
 
     @Override
