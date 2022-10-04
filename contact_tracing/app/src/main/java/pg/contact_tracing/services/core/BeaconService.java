@@ -162,7 +162,7 @@ public class BeaconService extends Service {
 
                     Log.i(BEACON_SERVICE_MONITOR_LOG, "didRangeBeaconsInRegion, beacon = " + beacon.toString());
 
-                    if (beacon.getDistance() <= 5.0) {
+                    if (beacon.getDistance() <= 2.0) {
                         Log.i(BEACON_SERVICE_MONITOR_LOG, "Very close beacon: " + beacon.getDistance());
                     } else {
                         Log.i(BEACON_SERVICE_MONITOR_LOG, "Far beacon, discard: " + beacon.getDistance());

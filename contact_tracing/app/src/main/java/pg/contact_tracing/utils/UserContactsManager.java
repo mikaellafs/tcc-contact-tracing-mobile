@@ -30,6 +30,7 @@ import pg.contact_tracing.utils.adapters.ContactAdapter;
 public class UserContactsManager {
     private static String USER_CONTACTS_MANAGER_LOG = "USER_CONTACTS_MANAGER";
     private final long MAX_TIME_DIFF = 2 * 60 * 1000; // 2 minutos
+    private final double MAX_DIST_DIFF = 1.0;
     UserContactsRepository repository;
     CryptoManager cryptoManager;
 
@@ -61,9 +62,10 @@ public class UserContactsManager {
 
             // Check if user is still in contact
             long time_diff = now - contact.getLastContactTimestamp();
-            Log.i(USER_CONTACTS_MANAGER_LOG, "Time diff: " + time_diff);
+            double dist_diff = Math.abs(beacon.getDistance() - contact.getDistance());
+            Log.i(USER_CONTACTS_MANAGER_LOG, "Time diff: " + time_diff + " / Dist diff: " + dist_diff);
 
-            if (time_diff < MAX_TIME_DIFF) {
+            if (time_diff < MAX_TIME_DIFF && dist_diff <= MAX_DIST_DIFF) {
                 Log.i(USER_CONTACTS_MANAGER_LOG, "There's a contact saved with less than 2 minutes with token " + contact.getToken());
                 contact.setLastContactTimestamp(now);
                 repository.updateContact(contact);
