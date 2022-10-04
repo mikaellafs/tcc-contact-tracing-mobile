@@ -12,8 +12,8 @@ import pg.contact_tracing.datasource.sqlite.SQLiteContactsStorage;
 import pg.contact_tracing.models.Contact;
 import pg.contact_tracing.models.LocalStorageKey;
 import pg.contact_tracing.models.RiskNotification;
-import pg.contact_tracing.utils.ContactAdapter;
-import pg.contact_tracing.utils.RiskNotificationAdapter;
+import pg.contact_tracing.utils.adapters.ContactAdapter;
+import pg.contact_tracing.utils.adapters.RiskNotificationAdapter;
 
 public class UserContactsRepository {
     private static String USER_CONTACTS_REPOSITORY_LOG = "USER_CONTACTS_REPOSITORY";

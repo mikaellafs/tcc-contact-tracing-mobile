@@ -25,6 +25,7 @@ import pg.contact_tracing.models.Contact;
 import pg.contact_tracing.models.ECSignature;
 import pg.contact_tracing.models.RiskNotification;
 import pg.contact_tracing.repositories.UserContactsRepository;
+import pg.contact_tracing.utils.adapters.ContactAdapter;
 
 public class UserContactsManager {
     private static String USER_CONTACTS_MANAGER_LOG = "USER_CONTACTS_MANAGER";

@@ -1,4 +1,4 @@
-package pg.contact_tracing.utils;
+package pg.contact_tracing.utils.adapters;
 
 import android.content.ContentValues;
 import android.util.Log;

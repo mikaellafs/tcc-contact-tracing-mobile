@@ -39,7 +39,7 @@ import pg.contact_tracing.services.mqtt.MqttClientService;
 import pg.contact_tracing.utils.CryptoManager;
 import pg.contact_tracing.utils.NotificationBroadcastCenter;
 import pg.contact_tracing.utils.NotificationCreator;
-import pg.contact_tracing.utils.RiskNotificationAdapter;
+import pg.contact_tracing.utils.adapters.RiskNotificationAdapter;
 import pg.contact_tracing.utils.UserContactsManager;
 
 public class MqttContactTracingService extends Service implements MqttCallback {
