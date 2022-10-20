@@ -25,7 +25,6 @@ public class UserInformationsRepository {
 
     // Get android id sha256 encoded hexadecimal string
     public String getID() {
-        clearInfos();
         String id = storage.getValue(LocalStorageKey.USER_ID);
 
         if (id == "") {
@@ -34,7 +33,8 @@ public class UserInformationsRepository {
 
             try {
                 byte[] hashAndroidID = CryptoManager.toSha128(androidId);
-                String hexAndroidID = Hex.encodeHexString(hashAndroidID);
+//                String hexAndroidID = Hex.encodeHexString(hashAndroidID);
+                String hexAndroidID = new String(Hex.encodeHex(hashAndroidID));
 
                 saveID(hexAndroidID);
                 id = hexAndroidID;
@@ -63,6 +63,7 @@ public class UserInformationsRepository {
     }
 
     public void savePrivateKey(String key) {
+        Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Private: " + key);
         storage.saveValue(LocalStorageKey.USER_PRIVATE_KEY, key);
     }
 
@@ -76,6 +77,7 @@ public class UserInformationsRepository {
     }
 
     public void savePublicKey(String key) {
+        Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Public: " + key);
         storage.saveValue(LocalStorageKey.USER_PUBLIC_KEY, key);
     }
 

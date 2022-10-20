@@ -9,6 +9,7 @@ import android.os.BatteryManager;
 import android.util.Log;
 
 import org.altbeacon.beacon.Beacon;
+import org.apache.commons.codec.binary.Hex;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -62,7 +63,7 @@ public class UserContactsManager {
 
             // Check if user is still in contact
             long time_diff = now - contact.getLastContactTimestamp();
-            double dist_diff = Math.abs(beacon.getDistance() - contact.getDistance());
+            double dist_diff = Math.abs(beacon.getDistance() - contact.getDistance()/100);
             Log.i(USER_CONTACTS_MANAGER_LOG, "Time diff: " + time_diff + " / Dist diff: " + dist_diff);
 
             if (time_diff < MAX_TIME_DIFF && dist_diff <= MAX_DIST_DIFF) {
@@ -81,7 +82,7 @@ public class UserContactsManager {
         Contact contact = new Contact(
                 beacon.getId1().toString(),
                 now,
-                beacon.getDistance(),
+                beacon.getDistance()* 100, // m to cm
                 beacon.getRssi(),
                 batteryLevel);
 
@@ -97,14 +98,16 @@ public class UserContactsManager {
             InvalidKeyException {
         JSONObject message = new JSONObject();
 
+        contact.undoFormatToken();
+        JSONObject contactMsg = ContactAdapter.toJSONObject(contact);
         message.put("id", contact.getId()); // To delete from memory after completed delivery
-        message.put("contact", ContactAdapter.toJSONObject(contact));
+        message.put("contact", contactMsg);
         message.put("user", id);
 
-        String msgStr = message.toString();
-        ECSignature sig = cryptoManager.sign(msgStr);
+        ECSignature sig = cryptoManager.sign(contactMsg.toString());
+        String sigHex = new String(Hex.encodeHex(sig.getSignature()));
 
-        message.put("signature", sig);
+        message.put("signature", sigHex);
 
         return message.toString();
     }

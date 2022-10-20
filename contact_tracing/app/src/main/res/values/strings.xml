@@ -38,7 +38,7 @@
 
     <!-- Report infection-->
     <string name="report_infection_button">Reportar</string>
-    <string name="report_infection_title">Diagnoticado com covid-19?</string>
+    <string name="report_infection_title">Diagnosticado com covid-19?</string>
     <string name="report_infection_text">Avise anonimamente às pessoas com quem teve contato.</string>
 
     <!-- Report infection dialog -->

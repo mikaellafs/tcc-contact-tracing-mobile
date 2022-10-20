@@ -7,17 +7,24 @@ import com.google.protobuf.Timestamp;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import pb.ContactTracingGrpc;
+import pb.Register;
+import pb.RegisterRequest;
+import pb.RegisterResult;
+import pb.Report;
+import pb.ReportRequest;
+import pb.ReportResult;
 
 public class GrpcService {
     private static final String GRPC_SERVICE_LOG = "GRPC_SERVICE";
-    private static final String HOST = "localhost";
-    private static final int PORT = 8080;
+    private static final String HOST = "0.tcp.sa.ngrok.io";
+    private static final int PORT = 11336;
 
     ContactTracingGrpc.ContactTracingBlockingStub blockingStub;
 
     public void createStubs() {
         Log.i(GRPC_SERVICE_LOG, "Creating GRPC stubs");
-        ManagedChannel mChannel = ManagedChannelBuilder.forAddress(HOST, PORT).useTransportSecurity().build();
+        ManagedChannel mChannel = ManagedChannelBuilder.forAddress(HOST, PORT).usePlaintext().build();
 
         blockingStub = ContactTracingGrpc.newBlockingStub(mChannel);
     }

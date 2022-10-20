@@ -79,9 +79,9 @@ public class SQLiteContactsStorage extends SQLiteOpenHelper {
         Log.i(SQLITE_CONTACT_STORAGE_LOG, "Get "+ limit +" notifications with selection: " + selection + " " + selectionArgs);
 
         SQLiteDatabase db = this.getWritableDatabase();
-        String[] columns = SQLiteContactsStorageStrings.getContactsTableColumns();
+        String[] columns = SQLiteContactsStorageStrings.getNotificationsTableColumns();
 
-        Cursor cursor = db.query(SQLiteContactsStorageStrings.CONTACTS_TABLE_NAME, columns, selection,
+        Cursor cursor = db.query(SQLiteContactsStorageStrings.NOTIFICATION_TABLE_NAME, columns, selection,
                 selectionArgs, null, null, null, limit.toString());
 
         ArrayList<ContentValues> notifications = parseNotificationsResults(cursor);
@@ -132,9 +132,8 @@ public class SQLiteContactsStorage extends SQLiteOpenHelper {
 
             ContentValues values = new ContentValues();
             values.put(SQLiteContactsStorageStrings.ID_COL, cursor.getString(0));
-            values.put(SQLiteContactsStorageStrings.DATE_COL, cursor.getString(1));
-            values.put(SQLiteContactsStorageStrings.AMOUNT_PEOPLE_COL, cursor.getLong(2));
-            values.put(SQLiteContactsStorageStrings.MESSAGE_COL, cursor.getLong(3));
+            values.put(SQLiteContactsStorageStrings.AMOUNT_PEOPLE_COL, cursor.getLong(1));
+            values.put(SQLiteContactsStorageStrings.MESSAGE_COL, cursor.getString(2));
 
             notifications.add(values);
         }

@@ -65,7 +65,7 @@ public class CryptoManager {
         return messageDigest.digest();
     }
 
-    public String generateKeyPair() throws NoSuchAlgorithmException {
+    public byte[] generateKeyPair() throws NoSuchAlgorithmException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance(CRYPTO_ALGORITHM);
         generator.initialize(KEY_SIZE, new SecureRandom());
 
@@ -81,7 +81,7 @@ public class CryptoManager {
         Log.i(CRYPTO_MANAGER_LOG, "Public key generated:" + pk);
         Log.i(CRYPTO_MANAGER_LOG, "Private key generated:" + sk);
 
-        return pk;
+        return pair.getPublic().getEncoded();
     }
 
     public ECSignature sign(String value)

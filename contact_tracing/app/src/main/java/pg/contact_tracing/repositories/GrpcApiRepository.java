@@ -4,15 +4,13 @@ import android.util.Log;
 
 import com.google.protobuf.ByteString;
 
-import java.util.Date;
-
+import pb.RegisterResult;
+import pb.ReportResult;
 import pg.contact_tracing.models.ApiResult;
 import pg.contact_tracing.models.ECSignature;
 import pg.contact_tracing.models.Report;
 import pg.contact_tracing.models.User;
 import pg.contact_tracing.services.grpc.GrpcService;
-import pg.contact_tracing.services.grpc.RegisterResult;
-import pg.contact_tracing.services.grpc.ReportResult;
 
 public class GrpcApiRepository {
     private static final String GRPC_API_REPOSITORY_LOG = "GRPC_API_REPOSITORY";
@@ -46,7 +44,7 @@ public class GrpcApiRepository {
                 report.getUserId(),
                 report.getDateStartSymptoms().getTime(),
                 report.getDateDiagnostic().getTime(),
-                report.getDateDiagnostic().getTime(),
+                report.getDateReport().getTime(),
                 ByteString.copyFrom(signature.getSignature()));
 
         Log.i(GRPC_API_REPOSITORY_LOG, "Report infection api call result: "+ result.getStatus() + " - " + result.getMessage());

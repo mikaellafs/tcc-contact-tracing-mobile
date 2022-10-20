@@ -16,7 +16,7 @@ public class MqttClientService {
     private static int QOS = 1;
 
     private MqttAndroidClient client;
-    private String serverURI;
+    private String serverURI = "tcp://0.tcp.sa.ngrok.io:16112";
 
     public MqttClientService(Context context) throws ClassCastException {
         String clientId = MqttClient.generateClientId();
@@ -25,6 +25,7 @@ public class MqttClientService {
     }
 
     public void connect(IMqttActionListener listener) throws MqttException {
+        Log.i(MQTT_CLIENT_SERVICE_LOG, "Connect to broker");
         IMqttToken token = client.connect();
         token.setActionCallback(listener);
     }

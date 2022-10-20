@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package pg.contact_tracing.services.grpc;
+package pb;
 import "google/protobuf/timestamp.proto";
 
 option java_multiple_files = true;

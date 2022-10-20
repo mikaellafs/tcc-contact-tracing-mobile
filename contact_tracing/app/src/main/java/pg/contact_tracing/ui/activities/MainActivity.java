@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -40,12 +41,9 @@ import pg.contact_tracing.exceptions.UserInformationNotFoundException;
 import pg.contact_tracing.models.ApiResult;
 import pg.contact_tracing.models.ECSignature;
 import pg.contact_tracing.models.Report;
-import pg.contact_tracing.models.RiskNotification;
-import pg.contact_tracing.models.User;
 import pg.contact_tracing.repositories.GrpcApiRepository;
 import pg.contact_tracing.repositories.UserInformationsRepository;
 import pg.contact_tracing.services.managers.MqttContactTracingServiceManager;
-import pg.contact_tracing.ui.fragments.PasswordDialog;
 import pg.contact_tracing.ui.fragments.ReportDateDialog;
 import pg.contact_tracing.ui.fragments.WarningBanner;
 import pg.contact_tracing.services.managers.BeaconServiceManager;
@@ -127,11 +125,12 @@ public class MainActivity extends AppCompatActivity implements ReportDateDialog.
 
         setSwitchAction();
         setReportAction();
-        setWarningBanner();
-        setReceiversNotification();
 
         String message = userContactsManager.getBannerMessageIfAtRisk();
-        if (message == null) hideWarningBanner(); else showWarningBanner(message);
+        Log.i(MAIN_ACTIVITY_LOG, message);
+        setWarningBanner(message == null ? "" : message);
+
+        setReceiversNotification();
     }
 
     private void setSwitchAction() {
@@ -192,8 +191,8 @@ public class MainActivity extends AppCompatActivity implements ReportDateDialog.
         warningBanner.setMessage(message);
     }
 
-    private void setWarningBanner() {
-        warningBanner = new WarningBanner();
+    private void setWarningBanner(String message) {
+        warningBanner = new WarningBanner(message);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.banner, warningBanner);
         ft.commit();
@@ -321,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements ReportDateDialog.
             CryptoManager cryptoManager = DI.resolve(CryptoManager.class);
 
             String id = userInfoRepo.getID();
-            Report report = new Report(id, dateStartSymptoms, dateDiagnostic, new Date());
+            Report report = new Report(id, dateStartSymptoms, dateDiagnostic, getNow());
             String reportString = ReportAdapter.toJSONObject(report).toString();
 
             ECSignature signature = cryptoManager.sign(reportString);
@@ -341,8 +340,18 @@ public class MainActivity extends AppCompatActivity implements ReportDateDialog.
             Log.e(MAIN_ACTIVITY_LOG, "Public key not found, must restart app: " + e.getMessage());
             Toast.makeText(MainActivity.this, "Ocorreu um erro, por favor reinicie o app.", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
-
+            Log.e(MAIN_ACTIVITY_LOG, "An error ocurred:" + e.getMessage());
+            Toast.makeText(MainActivity.this, "Falha na conexão, tente novamente mais tarde", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private Date getNow() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
     }
 
     @Override

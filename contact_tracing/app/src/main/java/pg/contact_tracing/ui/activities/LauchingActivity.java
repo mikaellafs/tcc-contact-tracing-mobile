@@ -12,6 +12,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.commons.codec.binary.Hex;
+
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -118,12 +120,15 @@ public class LauchingActivity extends AppCompatActivity implements PasswordDialo
             goToHomeScreen();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | SignatureException e) {
             userInformationsRepository.clearInfos();
+            Log.e(LAUCHING_ACTIVITY_LOG, e.getMessage());
             Toast.makeText(getApplicationContext(),"Este dispositivo não suporta os recursos necessários para começar.",Toast.LENGTH_SHORT).show();
         } catch (UserInformationNotFoundException | InvalidKeyException e) {
             userInformationsRepository.clearInfos();
+            Log.e(LAUCHING_ACTIVITY_LOG, e.getMessage());
             Toast.makeText(getApplicationContext(),"Algo deu errado, tente novamente mais tarde.",Toast.LENGTH_SHORT).show();
         } catch (io.grpc.StatusRuntimeException e) {
             userInformationsRepository.clearInfos();
+            Log.e(LAUCHING_ACTIVITY_LOG, "aaaaa: " + e.getMessage());
             Toast.makeText(getApplicationContext(),"Falha na conexão com servidor, tente novamente mais tarde.",Toast.LENGTH_SHORT).show();
         } finally {
             hideLoading();
@@ -136,7 +141,11 @@ public class LauchingActivity extends AppCompatActivity implements PasswordDialo
             InvalidKeySpecException,
             InvalidKeyException,
             SignatureException {
-        String pk = cryptoManager.generateKeyPair();
+        byte[] pkBytes = cryptoManager.generateKeyPair();
+//        String pk = Hex.encodeHexString(pkBytes);
+        String pk = new String(Hex.encodeHex(pkBytes));
+        Log.i(LAUCHING_ACTIVITY_LOG, "Pk hexadecimal: " + pk);
+
         String id = userInformationsRepository.getID();
 
         User user = new User(id, pk, password);

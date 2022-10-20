@@ -63,6 +63,10 @@ public class Contact {
         return batteryLevel;
     }
 
+    public void undoFormatToken() {
+        token = token.replace("-", "");
+    }
+
     @Override
     public String toString() {
         return "- Contato \n\tid: " + id + "\n\ttoken: " + token + "\n\tdistance: " + distance +

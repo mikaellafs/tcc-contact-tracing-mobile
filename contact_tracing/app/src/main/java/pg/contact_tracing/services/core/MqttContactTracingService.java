@@ -23,6 +23,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -46,7 +47,8 @@ public class MqttContactTracingService extends Service implements MqttCallback {
     private static final String MQTT_CONTACT_TRACING_SERVICE_LOG = "MQTT_CONTACT_TRACING_SERVICE";
 
     private static final String CONTACTS_PRODUCER_SERVICE_LOG = "CONTACTS_PRODUCER_SERVICE";
-    private static final int SEND_CONTACTS_INTERVAL = 10 * 60 * 1000; // 10 minutos
+//    private static final int SEND_CONTACTS_INTERVAL = 10 * 60 * 1000; // 10 minutos
+    private static final int SEND_CONTACTS_INTERVAL = 60 * 1000;
     private static final String SEND_CONTACTS_TOPIC = "contact";
     private static final int SEND_CONTACTS_LIMIT = 30;
     private static final int id = 1;
@@ -245,10 +247,13 @@ public class MqttContactTracingService extends Service implements MqttCallback {
 
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-        Log.i(NOTIFICATION_CONSUMER_SERVICE_LOG, "Message received from topic '"+ topic + "': " + new String(message.getPayload()));
+        String messageStr = new String(message.getPayload());
+        Log.i(NOTIFICATION_CONSUMER_SERVICE_LOG, "Message received from topic '"+ topic + "': " + messageStr);
 
         try {
-            JSONObject notification = new JSONObject(message.toString());
+            JSONObject notification = new JSONObject(messageStr);
+            System.out.println("Oi");
+
             boolean isUserAtRisk = notification.getBoolean("risk");
             String notificationMessage = notification.getString("message");
 
@@ -262,8 +267,8 @@ public class MqttContactTracingService extends Service implements MqttCallback {
 
             NotificationBroadcastCenter.Event NOTIFICATION_TYPE = isUserAtRisk ? NotificationBroadcastCenter.Event.RISK_NOTIFICATION : NotificationBroadcastCenter.Event.NOT_RISK_NOTIFICATION;
             NotificationBroadcastCenter.sendNotification(this, NOTIFICATION_TYPE, notificationMessage);
-        } catch(JSONException e) {
-            Log.e(NOTIFICATION_CONSUMER_SERVICE_LOG, "Failed to parse message received: " + message.toString());
+        } catch(JSONException | ParseException e) {
+            Log.e(NOTIFICATION_CONSUMER_SERVICE_LOG, "Failed to parse message received: " + e.getMessage());
             return;
         }
     }
