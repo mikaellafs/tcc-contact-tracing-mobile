@@ -52,7 +52,7 @@ public class BeaconService extends Service {
 
         try {
             userInformationsRepository = DI.resolve(UserInformationsRepository.class);
-            userID = makeToken(userInformationsRepository.getID());
+            userID = userInformationsRepository.getID();
         } catch (Exception e) {
             Log.e(BEACON_SERVICE_LOG, "Failed to resolve userInformation Repository: " + e);
         }
@@ -179,19 +179,6 @@ public class BeaconService extends Service {
     private void saveBeacon(Beacon beacon) {
         Log.i(BEACON_SERVICE_MONITOR_LOG, "Save beacon received: " + beacon.getId1());
         AsyncTask.execute(() -> userContactsManager.saveBeacon(beacon, getApplicationContext()));
-    }
-
-    // AltBeacon token format: [8 HEX_NUMBERS]-[4 HEX_NUMBERS]-[4 HEX_NUMBERS]-[4 HEX_NUMBERS]-[12 HEX_NUMBERS]
-    // 16 bytes
-    // Example: "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6"
-    private String makeToken(String id) {
-        String token = id.toUpperCase();
-        token = token.substring(0, 8) + "-" + token.substring(8, 12) + "-"
-                + token.substring(12, 16) + "-" + token.substring(16, 20) + "-"
-                + token.substring(20, 32);
-
-        Log.i(BEACON_SERVICE_LOG, "User token created: " + token);
-        return token;
     }
 }
 

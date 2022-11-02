@@ -8,7 +8,6 @@ import com.google.protobuf.Timestamp;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import pb.ContactTracingGrpc;
-import pb.Register;
 import pb.RegisterRequest;
 import pb.RegisterResult;
 import pb.Report;
@@ -18,7 +17,7 @@ import pb.ReportResult;
 public class GrpcService {
     private static final String GRPC_SERVICE_LOG = "GRPC_SERVICE";
     private static final String HOST = "0.tcp.sa.ngrok.io";
-    private static final int PORT = 11336;
+    private static final int PORT = 15936;
 
     ContactTracingGrpc.ContactTracingBlockingStub blockingStub;
 
@@ -29,18 +28,12 @@ public class GrpcService {
         blockingStub = ContactTracingGrpc.newBlockingStub(mChannel);
     }
 
-    public RegisterResult registerUser(String id, String publicKey, String password, ByteString sig) {
+    public RegisterResult registerUser(String id, String publicKey) {
         Log.i(GRPC_SERVICE_LOG, "Register user: " + id);
 
-        Register register = Register.newBuilder()
-                .setUserId(id)
-                .setPk(publicKey)
-                .setPassword(password)
-                .build();
-
         RegisterRequest request = RegisterRequest.newBuilder()
-                .setRegister(register)
-                .setSignature(sig)
+                .setPk(publicKey)
+                .setDeviceId(id)
                 .build();
 
         return blockingStub.register(request);

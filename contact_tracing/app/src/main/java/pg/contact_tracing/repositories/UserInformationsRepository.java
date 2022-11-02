@@ -23,34 +23,35 @@ public class UserInformationsRepository {
         storage = new SharedPreferencesStorage(context, LocalStorageKey.USER_INFO_STORAGE);
     }
 
-    // Get android id sha256 encoded hexadecimal string
-    public String getID() {
+    public String getID() throws UserInformationNotFoundException {
         String id = storage.getValue(LocalStorageKey.USER_ID);
 
         if (id == "") {
-            String androidId = Settings.Secure.getString(context.getContentResolver(),Settings.Secure.ANDROID_ID);
-            Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Android ID: " + androidId);
-
-            try {
-                byte[] hashAndroidID = CryptoManager.toSha128(androidId);
-//                String hexAndroidID = Hex.encodeHexString(hashAndroidID);
-                String hexAndroidID = new String(Hex.encodeHex(hashAndroidID));
-
-                saveID(hexAndroidID);
-                id = hexAndroidID;
-                Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Hash HEX Android ID: " + hexAndroidID);
-            } catch (NoSuchAlgorithmException e) {
-                Log.e(USER_INFORMATIONS_REPOSITORY_LOG, "Failed to get Android ID hash");
-                id = "";
-            }
+            throw new UserInformationNotFoundException("User id not found");
         }
 
-        Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Get user id: " + id);
+        return id;
+    }
+
+    public String getDeviceID() {
+        String id = storage.getValue(LocalStorageKey.DEVICE_ID);
+
+        if (id == "") {
+            id = Settings.Secure.getString(context.getContentResolver(),Settings.Secure.ANDROID_ID);
+            Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Android ID: " + id);
+            saveDeviceID(id);
+        }
+
+        Log.i(USER_INFORMATIONS_REPOSITORY_LOG, "Get device id: " + id);
         return id;
     }
 
     public void saveID(String id) {
         storage.saveValue(LocalStorageKey.USER_ID, id);
+    }
+
+    public void saveDeviceID(String id) {
+        storage.saveValue(LocalStorageKey.DEVICE_ID, id);
     }
 
     public String getPrivateKey() throws UserInformationNotFoundException {

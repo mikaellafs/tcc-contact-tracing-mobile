@@ -47,8 +47,8 @@ public class MqttContactTracingService extends Service implements MqttCallback {
     private static final String MQTT_CONTACT_TRACING_SERVICE_LOG = "MQTT_CONTACT_TRACING_SERVICE";
 
     private static final String CONTACTS_PRODUCER_SERVICE_LOG = "CONTACTS_PRODUCER_SERVICE";
-//    private static final int SEND_CONTACTS_INTERVAL = 10 * 60 * 1000; // 10 minutos
-    private static final int SEND_CONTACTS_INTERVAL = 60 * 1000;
+   private static final int SEND_CONTACTS_INTERVAL = 30 * 60 * 1000; // 30 minutos
+    // private static final int SEND_CONTACTS_INTERVAL = 60 * 1000;
     private static final String SEND_CONTACTS_TOPIC = "contact";
     private static final int SEND_CONTACTS_LIMIT = 30;
     private static final int id = 1;
@@ -105,6 +105,8 @@ public class MqttContactTracingService extends Service implements MqttCallback {
 
         } catch (InstanceNotRegisteredDIException e) {
             Log.e(MQTT_CONTACT_TRACING_SERVICE_LOG, "Failed to resolve dependency: " + e.getMessage());
+        } catch (UserInformationNotFoundException e) {
+            Log.e(MQTT_CONTACT_TRACING_SERVICE_LOG, e.getMessage());
         }
     }
 

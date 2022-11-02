@@ -8,6 +8,12 @@ public enum LocalStorageKey {
         }
 
     },
+    DEVICE_ID {
+        @Override
+        public String toString() {
+            return "CONTACT_TRACING_DEVICE_ID";
+        }
+    },
     USER_ID {
         @Override
         public String toString() {

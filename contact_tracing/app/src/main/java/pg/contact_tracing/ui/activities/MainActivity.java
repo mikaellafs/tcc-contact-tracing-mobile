@@ -127,8 +127,12 @@ public class MainActivity extends AppCompatActivity implements ReportDateDialog.
         setReportAction();
 
         String message = userContactsManager.getBannerMessageIfAtRisk();
-        Log.i(MAIN_ACTIVITY_LOG, message);
+        Log.i(MAIN_ACTIVITY_LOG, "Banner message: " + message);
         setWarningBanner(message == null ? "" : message);
+        if (message == null) {
+            hideWarningBanner();
+        }
+        
 
         setReceiversNotification();
     }

@@ -12,9 +12,8 @@ public class UserAdapter {
         JSONObject userJSON = new JSONObject();
         
         try {
-            userJSON.put("userId", user.getId());
+            userJSON.put("deviceId", user.getId());
             userJSON.put("pk", user.getPublicKey());
-            userJSON.put("password", user.getPassword());
         } catch (JSONException e) {
             Log.e("USER_ADAPTER","Failed to parse contact as json");
         }

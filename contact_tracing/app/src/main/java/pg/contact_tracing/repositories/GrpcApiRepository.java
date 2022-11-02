@@ -21,18 +21,16 @@ public class GrpcApiRepository {
         api.createStubs();
     }
 
-    public ApiResult registerUser(User user, ECSignature signature) {
-        Log.i(GRPC_API_REPOSITORY_LOG, "Register user: " + user.toString() + "\nSignature: " + signature.toString());
+    public ApiResult registerUser(User user) {
+        Log.i(GRPC_API_REPOSITORY_LOG, "Register user: " + user.toString());
 
         RegisterResult result = api.registerUser(
                 user.getId(),
-                user.getPublicKey(),
-                user.getPassword(),
-                ByteString.copyFrom(signature.getSignature())
+                user.getPublicKey()
         );
 
         Log.i(GRPC_API_REPOSITORY_LOG, "Register user api call result: "+ result.getStatus() + " - " + result.getMessage());
-        return new ApiResult(result.getStatus(), result.getMessage(), result.getServerPk());
+        return new ApiResult(result.getStatus(), result.getMessage(), result.getUserId());
     }
 
     public ApiResult reportInfection(Report report, ECSignature signature) {
