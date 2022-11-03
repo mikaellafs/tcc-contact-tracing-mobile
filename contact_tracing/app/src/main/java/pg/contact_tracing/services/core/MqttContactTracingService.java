@@ -49,12 +49,12 @@ public class MqttContactTracingService extends Service implements MqttCallback {
     private static final String CONTACTS_PRODUCER_SERVICE_LOG = "CONTACTS_PRODUCER_SERVICE";
    private static final int SEND_CONTACTS_INTERVAL = 30 * 60 * 1000; // 30 minutos
     // private static final int SEND_CONTACTS_INTERVAL = 60 * 1000;
-    private static final String SEND_CONTACTS_TOPIC = "contact";
+    private static final String SEND_CONTACTS_TOPIC = "contato";
     private static final int SEND_CONTACTS_LIMIT = 30;
     private static final int id = 1;
 
     private static final String NOTIFICATION_CONSUMER_SERVICE_LOG = "NOTIFICATION_CONSUMER_SERVICE";
-    private static final String RECEIVE_NOTIFICATION_BASE_TOPIC = "notification";
+    private static final String RECEIVE_NOTIFICATION_BASE_TOPIC = "notificacao";
 
     MqttClientService client;
     UserContactsRepository repository;
