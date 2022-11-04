@@ -254,14 +254,12 @@ public class MqttContactTracingService extends Service implements MqttCallback {
 
         try {
             JSONObject notification = new JSONObject(messageStr);
-            System.out.println("Oi");
 
             boolean isUserAtRisk = notification.getBoolean("risk");
             String notificationMessage = notification.getString("message");
 
             if (isUserAtRisk) {
                 RiskNotification risk = RiskNotificationAdapter.fromJSONObject(notification);
-                repository.addNewNotification(risk);
                 showRiskNotification(risk);
             } else {
                 repository.deleteNotification(1);
@@ -293,6 +291,12 @@ public class MqttContactTracingService extends Service implements MqttCallback {
     }
 
     private void showRiskNotification(RiskNotification risk){
+        String message = new UserContactsManager().getBannerMessageIfAtRisk();
+        if (message != null) {
+            repository.addNewNotification(risk);
+            return;
+        }
+
         String userNotificationChannelId = getString(R.string.user_notification_channel_id);
         String userNotificationChannelName = getString(R.string.user_notification_channel_name);
         String userNotificationTitle = getString(R.string.user_notification_title);
