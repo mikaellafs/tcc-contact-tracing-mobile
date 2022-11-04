@@ -128,7 +128,7 @@ public class LauchingActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(),"Algo deu errado, tente novamente mais tarde.",Toast.LENGTH_SHORT).show();
         } catch (io.grpc.StatusRuntimeException e) {
             userInformationsRepository.clearInfos();
-            Log.e(LAUCHING_ACTIVITY_LOG, "aaaaa: " + e.getMessage());
+            Log.e(LAUCHING_ACTIVITY_LOG, "Grpc Runtime Exception: " + e.getMessage());
             Toast.makeText(getApplicationContext(),"Falha na conexão com servidor, tente novamente mais tarde.",Toast.LENGTH_SHORT).show();
         } finally {
             runOnUiThread(() ->hideLoading());
