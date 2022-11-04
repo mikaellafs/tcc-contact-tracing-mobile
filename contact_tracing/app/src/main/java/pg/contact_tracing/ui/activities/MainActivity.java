@@ -97,14 +97,16 @@ public class MainActivity extends AppCompatActivity implements ReportDateDialog.
         }
     };
 
+
     BroadcastReceiver mqttServiceFailedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.i(MAIN_ACTIVITY_LOG, "Mqtt service failed: "+ intent.getStringExtra("message"));
-            beaconServiceManager.stop(MainActivity.this);
 
-            tracingSwitch.setChecked(false);
-            Toast.makeText(context, "Não foi possível iniciar o rastreamento, tente novamente mais tarde", Toast.LENGTH_SHORT).show();
+            // Schedule try to start later
+            mqttServiceManager.retryStartServiceLoop(context);
+
+            Toast.makeText(context, "Rastreamento iniciado parcialmente, verifique sua conexão.", Toast.LENGTH_SHORT).show();
         }
     };
 

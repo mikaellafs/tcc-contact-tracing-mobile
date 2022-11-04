@@ -80,8 +80,8 @@ public class LauchingActivity extends AppCompatActivity {
             Log.i(LAUCHING_ACTIVITY_LOG, "Key pair found");
 
             // Check if user is registered
-            userInformationsRepository.getServerPublicKey();
-            Log.i(LAUCHING_ACTIVITY_LOG, "Server pk found");
+            userInformationsRepository.getID();
+            Log.i(LAUCHING_ACTIVITY_LOG, "User id not found");
 
             goToHomeScreen();
         } catch (UserInformationNotFoundException e) {
