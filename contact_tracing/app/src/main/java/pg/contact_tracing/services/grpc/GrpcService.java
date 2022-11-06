@@ -16,8 +16,8 @@ import pb.ReportResult;
 
 public class GrpcService {
     private static final String GRPC_SERVICE_LOG = "GRPC_SERVICE";
-    private static final String HOST = "0.tcp.sa.ngrok.io";
-    private static final int PORT = 15936;
+    private static final String HOST = "18.232.139.30";
+    private static final int PORT = 50052;
 
     ContactTracingGrpc.ContactTracingBlockingStub blockingStub;
 

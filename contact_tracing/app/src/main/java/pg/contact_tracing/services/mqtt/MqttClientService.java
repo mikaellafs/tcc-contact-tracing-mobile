@@ -16,7 +16,7 @@ public class MqttClientService {
     private static int QOS = 1;
 
     private MqttAndroidClient client;
-    private String serverURI = "tcp://0.tcp.sa.ngrok.io:16112";
+    private String serverURI = "tcp://ec2-18-232-139-30.compute-1.amazonaws.com:1883";
 
     public MqttClientService(Context context) throws ClassCastException {
         String clientId = MqttClient.generateClientId();
