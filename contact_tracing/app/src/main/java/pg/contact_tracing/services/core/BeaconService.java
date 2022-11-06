@@ -34,7 +34,7 @@ public class BeaconService extends Service {
 
     public static boolean isRunning;
 
-    private static final long SCAN_PERIOD_INTERVAL = 5000; // 5 sec
+    private static final long SCAN_PERIOD_INTERVAL = 15000; // 15 sec
     private static final int id = 1;
 
     private UserContactsManager userContactsManager;
@@ -118,7 +118,7 @@ public class BeaconService extends Service {
                 .setId2("1")
                 .setId3("2")
                 .setManufacturer(appManufacturer)
-                .setTxPower(-59)
+                .setTxPower(-70)
                 .setDataFields(Collections.singletonList(0L)) // Remove this for beacon layouts without d: fields
                 .build();
 

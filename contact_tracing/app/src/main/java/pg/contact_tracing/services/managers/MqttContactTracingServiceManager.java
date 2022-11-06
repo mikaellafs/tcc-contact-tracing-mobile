@@ -39,7 +39,9 @@ public class MqttContactTracingServiceManager {
             @Override
             public void run(){
                 Log.i(MQTT_SERVICE_MANAGER_LOG, "Try to start MQTT service");
-                if (isRunning() && new BeaconServiceManager().isTracing()) {
+                boolean isTracing = new BeaconServiceManager().isTracing();
+                if (isRunning() || !isTracing) {
+                    Log.i(MQTT_SERVICE_MANAGER_LOG, "Do not retry starting MQTT service");
                     return;
                 }
 

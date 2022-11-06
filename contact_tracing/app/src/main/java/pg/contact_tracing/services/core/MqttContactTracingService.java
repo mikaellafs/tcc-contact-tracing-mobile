@@ -75,6 +75,9 @@ public class MqttContactTracingService extends Service implements MqttCallback {
             public void onSuccess(IMqttToken asyncActionToken) {
                 Log.i(MQTT_CONTACT_TRACING_SERVICE_LOG, "Success on connecting to broker");
 
+                // First time need to send contacts
+                sendContacts(false);
+
                 listenToNotifications();
                 startSendContactsTask();
             }
@@ -202,12 +205,12 @@ public class MqttContactTracingService extends Service implements MqttCallback {
         new Timer().schedule(new TimerTask(){
             @Override
             public void run(){
-                AsyncTask.execute(() -> sendContacts());
+                AsyncTask.execute(() -> sendContacts(true));
             }
         }, SEND_CONTACTS_INTERVAL);
     }
 
-    private void sendContacts() {
+    private void sendContacts(boolean enableLoop) {
         Log.i(CONTACTS_PRODUCER_SERVICE_LOG, "Start sending contacts saved");
         try {
             ArrayList<Contact> lastContacts = repository.getContact(
@@ -231,7 +234,7 @@ public class MqttContactTracingService extends Service implements MqttCallback {
 
         } finally {
             Log.i(MQTT_CONTACT_TRACING_SERVICE_LOG, "Stopping sending contacts saved for now");
-            startSendContactsTask();
+            if (enableLoop) startSendContactsTask();
         }
     }
 

@@ -31,7 +31,7 @@ import pg.contact_tracing.utils.adapters.ContactAdapter;
 public class UserContactsManager {
     private static String USER_CONTACTS_MANAGER_LOG = "USER_CONTACTS_MANAGER";
     private final long MAX_TIME_DIFF = 2 * 60 * 1000; // 2 minutos
-    private final double MAX_DIST_DIFF = 1.0;
+    private final double MAX_DIST_DIFF = 2.0;
     UserContactsRepository repository;
     CryptoManager cryptoManager;
 
@@ -98,7 +98,6 @@ public class UserContactsManager {
             InvalidKeyException {
         JSONObject message = new JSONObject();
 
-        contact.undoFormatToken();
         JSONObject contactMsg = ContactAdapter.toJSONObject(contact);
         message.put("id", contact.getId()); // To delete from memory after completed delivery
         message.put("contact", contactMsg);
