@@ -5,6 +5,8 @@ import static pg.contact_tracing.datasource.sqlite.SQLiteContactsStorageStrings.
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.IBinder;
@@ -65,10 +67,21 @@ public class MqttContactTracingService extends Service implements MqttCallback {
 
     private IMqttActionListener onConnectionListener;
 
+    BroadcastReceiver beaconServiceFailedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(MQTT_CONTACT_TRACING_SERVICE_LOG, "Beacon service failed, stopping self...");
+            if (isRunning) stopSelf();
+        }
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
         isRunning = false;
+
+        // Listen to event beacon service has failed
+        NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.BEACON_SERVICE_FAILED, beaconServiceFailedReceiver);
 
         onConnectionListener = new IMqttActionListener() {
             @Override
@@ -159,6 +172,7 @@ public class MqttContactTracingService extends Service implements MqttCallback {
     @Override
     public void onDestroy() {
         Log.i(MQTT_CONTACT_TRACING_SERVICE_LOG, "Mqtt service destroyed");
+        isRunning = false;
     }
 
     @Override

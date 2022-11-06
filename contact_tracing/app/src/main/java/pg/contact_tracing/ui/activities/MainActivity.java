@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements ReportDateDialog.
         // Listen to event beacon service has failed
         NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.BEACON_SERVICE_FAILED, beaconServiceFailedReceiver);
 
-        // Listen to event beacon service has failed
+        // Listen to event mqtt service has failed
         NotificationBroadcastCenter.registerReceiver(this, NotificationBroadcastCenter.Event.MQTT_SERVICE_FAILED, mqttServiceFailedReceiver);
     }
 

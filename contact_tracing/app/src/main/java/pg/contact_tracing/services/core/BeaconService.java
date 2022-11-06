@@ -103,6 +103,7 @@ public class BeaconService extends Service {
         super.onDestroy();
         beaconTransmitter.stopAdvertising();
         beaconManager.stopRangingBeacons(region);
+        isRunning = false;
 
         Log.i(BEACON_SERVICE_LOG, "Beacon service destroyed");
     }
