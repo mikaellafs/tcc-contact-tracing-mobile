@@ -1,17 +1,19 @@
 package pg.contact_tracing.ui.activities;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.format.DateUtils;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -31,8 +33,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import pg.contact_tracing.R;
 import pg.contact_tracing.di.DI;
@@ -218,6 +218,41 @@ public class MainActivity extends AppCompatActivity implements ReportDateDialog.
         }
     }
 
+    private boolean checkIfLocationIsEnabled() {
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        boolean isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        return isGpsEnabled || isNetworkEnabled;
+    }
+
+    private boolean checkAndRequestLocation() {
+        Log.i(MAIN_ACTIVITY_LOG, "Enable location");
+
+        boolean isLocationEnabled = checkIfLocationIsEnabled();
+        if (!isLocationEnabled) {
+            Log.i(MAIN_ACTIVITY_LOG, "Location is not enabled");
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Ative a localização");
+            builder.setMessage("O aplicativo precisa que a localização esteja ativa para rastrear contatos. Não se preocupe, a sua localização não será compartilhada.");
+            builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivity(intent);
+                }
+            });
+            builder.setNegativeButton(android.R.string.no, null);
+            builder.show();
+
+            tracingSwitch.setChecked(false);
+            return false;
+        }
+
+        return true;
+    }
+
     private boolean checkAndRequestPermissions(Context context) {
         Log.i(MAIN_ACTIVITY_LOG, "Checking permissions");
         ArrayList<String> permissionsNotGranted = new ArrayList<>();
@@ -262,6 +297,13 @@ public class MainActivity extends AppCompatActivity implements ReportDateDialog.
             Toast.makeText(context,"Não é possível iniciar o rastreamento sem as permissões necessárias",Toast.LENGTH_SHORT).show();
             return;
         }
+        boolean isLocationEnabled = checkIfLocationIsEnabled();
+
+        if (!isLocationEnabled) {
+            Log.i(MAIN_ACTIVITY_LOG, "Location is not enabled, can't start tracing");
+            Toast.makeText(context,"Não é possível iniciar o rastreamento sem ativar a localização",Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         if (startTracing(context)) {
             tracingSwitch.setChecked(true);
@@ -269,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements ReportDateDialog.
     }
 
     public boolean startTracing(Context context) {
-        if (!checkAndRequestPermissions(context)) {
+        if (!checkAndRequestPermissions(context) || !checkAndRequestLocation()) {
             return false;
         }
         enableBluetooth();

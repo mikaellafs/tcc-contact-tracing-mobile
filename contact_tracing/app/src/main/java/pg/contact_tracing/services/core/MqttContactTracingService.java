@@ -309,8 +309,8 @@ public class MqttContactTracingService extends Service implements MqttCallback {
 
     private void showRiskNotification(RiskNotification risk){
         String message = new UserContactsManager().getBannerMessageIfAtRisk();
+        repository.addNewNotification(risk);
         if (message != null) {
-            repository.addNewNotification(risk);
             return;
         }
 
