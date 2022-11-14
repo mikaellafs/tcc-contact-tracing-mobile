@@ -17,8 +17,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 
 import pg.contact_tracing.di.DI;
 import pg.contact_tracing.exceptions.UserInformationNotFoundException;
@@ -51,7 +51,7 @@ public class UserContactsManager {
     }
     public void saveBeacon(Beacon beacon, Context context) {
         Log.i(USER_CONTACTS_MANAGER_LOG, "Save beacon: " + beacon.toString());
-        long now = new Date().getTime();
+        long now = Instant.now().toEpochMilli();
 
         // Get last contact saved if it exists
         String selection = "token='" + beacon.getId1().toString() + "'";
