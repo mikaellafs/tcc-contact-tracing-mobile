@@ -8,6 +8,7 @@ import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -26,7 +27,12 @@ public class MqttClientService {
 
     public void connect(IMqttActionListener listener) throws MqttException {
         Log.i(MQTT_CLIENT_SERVICE_LOG, "Connect to broker");
-        IMqttToken token = client.connect();
+
+        MqttConnectOptions options = new MqttConnectOptions();
+//        options.setAutomaticReconnect(true);
+        options.setConnectionTimeout(0);
+
+        IMqttToken token = client.connect(options);
         token.setActionCallback(listener);
     }
 

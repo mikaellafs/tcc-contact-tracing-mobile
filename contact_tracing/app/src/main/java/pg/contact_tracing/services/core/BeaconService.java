@@ -34,7 +34,8 @@ public class BeaconService extends Service {
 
     public static boolean isRunning;
 
-    private static final long SCAN_PERIOD_INTERVAL = 15000; // 15 sec
+//    private static final long SCAN_PERIOD_INTERVAL = 15000; // 15 sec
+    private static final long SCAN_PERIOD_INTERVAL = 5000; // 5 sec
     private static final int id = 1;
 
     private UserContactsManager userContactsManager;
