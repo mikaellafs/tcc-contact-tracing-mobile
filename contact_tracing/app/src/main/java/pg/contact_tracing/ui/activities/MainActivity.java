@@ -75,7 +75,11 @@ public class MainActivity extends AppCompatActivity implements ReportDateDialog.
     BroadcastReceiver userNotAtRiskReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            hideWarningBanner();
+            try {
+                hideWarningBanner();
+            } catch (Exception e) {
+                Log.e(MAIN_ACTIVITY_LOG, "Hiding banner failed");
+            }
         }
     };
 
