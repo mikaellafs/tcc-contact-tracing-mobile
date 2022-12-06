@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,11 @@ import pg.contact_tracing.R;
 
 public class WarningBanner extends Fragment {
     TextView subtitle;
+    String subText;
+
+    public WarningBanner(String subtitle) {
+        this.subText = subtitle;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -26,6 +32,7 @@ public class WarningBanner extends Fragment {
         View view = inflater.inflate(R.layout.warning_banner, container, false);
 
         subtitle = view.findViewById(R.id.warning_subtitle);
+        setMessage(subText);
         return view;
     }
 

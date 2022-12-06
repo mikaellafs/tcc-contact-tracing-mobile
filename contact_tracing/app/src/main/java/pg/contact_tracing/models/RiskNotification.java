@@ -4,19 +4,16 @@ import java.util.Date;
 
 public class RiskNotification {
     private int id = 1;
-    private long date;
     private int amountOfPeople;
     private String message;
 
-    public RiskNotification(int id, long date, int amountOfPeople, String message) {
+    public RiskNotification(int id, int amountOfPeople, String message) {
         this.id = id;
-        this.date = date;
         this.amountOfPeople = amountOfPeople;
         this.message = message;
     }
 
-    public RiskNotification(long date, int amountOfPeople, String message) {
-        this.date = date;
+    public RiskNotification(int amountOfPeople, String message) {
         this.amountOfPeople = amountOfPeople;
         this.message = message;
     }
@@ -29,10 +26,6 @@ public class RiskNotification {
         this.id = id;
     }
 
-    public long getDate() {
-        return date;
-    }
-
     public int getAmountOfPeople() {
         return amountOfPeople;
     }
@@ -43,7 +36,7 @@ public class RiskNotification {
 
     @Override
     public String toString() {
-        return "RiskNotification(id: " + id + ", date: " + new Date(date)
+        return "RiskNotification(id: " + id
                 + ", peopleWithCovid: " + amountOfPeople + ", message: " + message;
     }
 }

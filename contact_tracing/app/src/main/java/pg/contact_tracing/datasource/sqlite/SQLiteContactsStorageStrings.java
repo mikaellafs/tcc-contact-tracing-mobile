@@ -11,7 +11,6 @@ public class SQLiteContactsStorageStrings {
     public static String BATTERY_LEVEL_COL = "battery_level";
 
     public static String NOTIFICATION_TABLE_NAME = "Notifications";
-    public static String DATE_COL = "timestamp";
     public static String AMOUNT_PEOPLE_COL = "amount_people";
     public static String MESSAGE_COL = "message";
 
@@ -25,7 +24,7 @@ public class SQLiteContactsStorageStrings {
     }
 
     public static String[] getNotificationsTableColumns() {
-        return new String[]{ID_COL, DATE_COL, AMOUNT_PEOPLE_COL, MESSAGE_COL};
+        return new String[]{ID_COL, AMOUNT_PEOPLE_COL, MESSAGE_COL};
     }
 
     public static String createContactsTable() {
@@ -42,7 +41,6 @@ public class SQLiteContactsStorageStrings {
     public static String createNotificationTable() {
         return "CREATE TABLE " + NOTIFICATION_TABLE_NAME + " ("
                 + ID_COL + " INTEGER PRIMARY KEY,"
-                + DATE_COL + " REAL,"
                 + AMOUNT_PEOPLE_COL + " INTEGER,"
                 + MESSAGE_COL + " TEXT)";
     }

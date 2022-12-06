@@ -12,6 +12,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.commons.codec.binary.Hex;
+
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -32,7 +34,7 @@ import pg.contact_tracing.ui.fragments.PasswordDialog;
 import pg.contact_tracing.utils.CryptoManager;
 import pg.contact_tracing.utils.adapters.UserAdapter;
 
-public class LauchingActivity extends AppCompatActivity implements PasswordDialog.PasswordDialogListener {
+public class LauchingActivity extends AppCompatActivity {
     static private final String LAUCHING_ACTIVITY_LOG = "LAUCHING_ACTIVITY";
     static private final int LAUCHING_SCREEN_DELAY= 2000; //2 seconds
 
@@ -78,8 +80,8 @@ public class LauchingActivity extends AppCompatActivity implements PasswordDialo
             Log.i(LAUCHING_ACTIVITY_LOG, "Key pair found");
 
             // Check if user is registered
-            userInformationsRepository.getServerPublicKey();
-            Log.i(LAUCHING_ACTIVITY_LOG, "Server pk found");
+            userInformationsRepository.getID();
+            Log.i(LAUCHING_ACTIVITY_LOG, "User id not found");
 
             goToHomeScreen();
         } catch (UserInformationNotFoundException e) {
@@ -98,52 +100,56 @@ public class LauchingActivity extends AppCompatActivity implements PasswordDialo
         subtitle.setText(R.string.lauching_subtitle_register);
 
         // Set button action
-        button.setOnClickListener(v -> showPasswordDialog());
+        button.setOnClickListener(v -> registerButtonAction());
 
         button.setVisibility(View.VISIBLE);
         button_layout.setVisibility(View.VISIBLE);
     }
 
-    private void registerButtonAction(String password) {
+    private void registerButtonAction() {
         Log.i(LAUCHING_ACTIVITY_LOG, "Register button tapped, create a key pair.");
-        showLoading();
+        runOnUiThread(() -> showLoading());
         try {
-            ApiResult result = registerUser(password);
+            ApiResult result = registerUser();
 
             if (result.getCode() != 200) {
                 Toast.makeText(getApplicationContext(), result.getMessage(), Toast.LENGTH_SHORT).show();
                 return;
             }
-            userInformationsRepository.saveServerPublicKey(result.getServerPk());
+            userInformationsRepository.saveID(result.getuserId());
             goToHomeScreen();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | SignatureException e) {
             userInformationsRepository.clearInfos();
+            Log.e(LAUCHING_ACTIVITY_LOG, e.getMessage());
             Toast.makeText(getApplicationContext(),"Este dispositivo não suporta os recursos necessários para começar.",Toast.LENGTH_SHORT).show();
         } catch (UserInformationNotFoundException | InvalidKeyException e) {
             userInformationsRepository.clearInfos();
+            Log.e(LAUCHING_ACTIVITY_LOG, e.getMessage());
             Toast.makeText(getApplicationContext(),"Algo deu errado, tente novamente mais tarde.",Toast.LENGTH_SHORT).show();
         } catch (io.grpc.StatusRuntimeException e) {
             userInformationsRepository.clearInfos();
+            Log.e(LAUCHING_ACTIVITY_LOG, "Grpc Runtime Exception: " + e.getMessage());
             Toast.makeText(getApplicationContext(),"Falha na conexão com servidor, tente novamente mais tarde.",Toast.LENGTH_SHORT).show();
         } finally {
-            hideLoading();
+            runOnUiThread(() ->hideLoading());
         }
     }
 
-    private ApiResult registerUser(String password)
+    private ApiResult registerUser()
             throws UserInformationNotFoundException,
             NoSuchAlgorithmException,
             InvalidKeySpecException,
             InvalidKeyException,
             SignatureException {
-        String pk = cryptoManager.generateKeyPair();
-        String id = userInformationsRepository.getID();
+        byte[] pkBytes = cryptoManager.generateKeyPair();
+//        String pk = Hex.encodeHexString(pkBytes);
+        String pk = new String(Hex.encodeHex(pkBytes));
+        Log.i(LAUCHING_ACTIVITY_LOG, "Pk hexadecimal: " + pk);
 
-        User user = new User(id, pk, password);
-        String userJsonStr = UserAdapter.toJSONObject(user).toString();
+        String id = userInformationsRepository.getDeviceID();
 
-        ECSignature signature = cryptoManager.sign(userJsonStr);
-        return apiRepository.registerUser(user, signature);
+        User user = new User(id, pk);
+        return apiRepository.registerUser(user);
     }
 
     private void goToHomeScreen() {
@@ -161,51 +167,5 @@ public class LauchingActivity extends AppCompatActivity implements PasswordDialo
         button.setClickable(true);
         button_layout.setVisibility(View.VISIBLE);
         loading.setVisibility(View.GONE);
-    }
-
-    // Password dialog
-
-    public void showPasswordDialog() {
-        PasswordDialog passwordDialog = new PasswordDialog();
-        passwordDialog.show(getSupportFragmentManager(), "PasswordDialog");
-    }
-
-    @Override
-    public void onPasswordDialogPositiveClick(PasswordDialog dialog) {
-        Log.i(LAUCHING_ACTIVITY_LOG, "Password dialog register click");
-
-        boolean isValid = validateFields(dialog);
-        if (!isValid) return;
-
-        registerButtonAction(dialog.getPassword());
-        dialog.dismiss();
-    }
-
-    @Override
-    public void onPasswordDialogNegativeClick(PasswordDialog dialog) {
-        Log.i(LAUCHING_ACTIVITY_LOG, "Password dialog negative click");
-    }
-
-    private boolean validateFields(PasswordDialog dialog) {
-        String password = dialog.getPassword();
-        String repeatPassword = dialog.getRepeatPassword();
-
-        if (!password.equals(repeatPassword)) {
-            dialog.setPrompt(R.string.password_dialog_prompt_different_password);
-            dialog.showPrompt();
-            Log.i(LAUCHING_ACTIVITY_LOG, "Different password inputs");
-            return false;
-        }
-
-        if (password.length() < 6 || password.length() > 16) {
-            dialog.setPrompt(R.string.password_dialog_prompt_password_size);
-            dialog.showPrompt();
-            Log.i(LAUCHING_ACTIVITY_LOG, "Password too short or too long");
-            return false;
-        }
-
-        Log.i(LAUCHING_ACTIVITY_LOG, "Password validated");
-        dialog.hidePrompt();
-        return true;
     }
 }

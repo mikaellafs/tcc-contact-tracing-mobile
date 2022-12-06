@@ -38,7 +38,7 @@
 
     <!-- Report infection-->
     <string name="report_infection_button">Reportar</string>
-    <string name="report_infection_title">Diagnoticado com covid-19?</string>
+    <string name="report_infection_title">Diagnosticado com covid-19?</string>
     <string name="report_infection_text">Avise anonimamente às pessoas com quem teve contato.</string>
 
     <!-- Report infection dialog -->
@@ -48,5 +48,7 @@
     <string name="report_infection_dialog_cancel_button">Cancelar</string>
     <string name="report_infection_dialog_continue_button">Continuar</string>
     <string name="placeholder_date">__/__/__</string>
+    <string name="report_infection_dialog_prompt_diagnostic">A data de diagnóstico não pode ser no futuro.</string>
+    <string name="report_infection_dialog_prompt_start">A data de início dos sintomas não pode ser no futuro.</string>
 
 </resources>

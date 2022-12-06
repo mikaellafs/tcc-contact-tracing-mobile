@@ -8,6 +8,7 @@ import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -16,7 +17,7 @@ public class MqttClientService {
     private static int QOS = 1;
 
     private MqttAndroidClient client;
-    private String serverURI;
+    private String serverURI = "tcp://ec2-18-232-139-30.compute-1.amazonaws.com:1883";
 
     public MqttClientService(Context context) throws ClassCastException {
         String clientId = MqttClient.generateClientId();
@@ -25,7 +26,13 @@ public class MqttClientService {
     }
 
     public void connect(IMqttActionListener listener) throws MqttException {
-        IMqttToken token = client.connect();
+        Log.i(MQTT_CLIENT_SERVICE_LOG, "Connect to broker");
+
+        MqttConnectOptions options = new MqttConnectOptions();
+//        options.setAutomaticReconnect(true);
+        options.setConnectionTimeout(0);
+
+        IMqttToken token = client.connect(options);
         token.setActionCallback(listener);
     }
 

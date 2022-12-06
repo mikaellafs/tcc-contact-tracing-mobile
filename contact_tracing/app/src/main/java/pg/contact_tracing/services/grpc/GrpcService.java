@@ -7,33 +7,33 @@ import com.google.protobuf.Timestamp;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import pb.ContactTracingGrpc;
+import pb.RegisterRequest;
+import pb.RegisterResult;
+import pb.Report;
+import pb.ReportRequest;
+import pb.ReportResult;
 
 public class GrpcService {
     private static final String GRPC_SERVICE_LOG = "GRPC_SERVICE";
-    private static final String HOST = "localhost";
-    private static final int PORT = 8080;
+    private static final String HOST = "18.232.139.30";
+    private static final int PORT = 50052;
 
     ContactTracingGrpc.ContactTracingBlockingStub blockingStub;
 
     public void createStubs() {
         Log.i(GRPC_SERVICE_LOG, "Creating GRPC stubs");
-        ManagedChannel mChannel = ManagedChannelBuilder.forAddress(HOST, PORT).useTransportSecurity().build();
+        ManagedChannel mChannel = ManagedChannelBuilder.forAddress(HOST, PORT).usePlaintext().build();
 
         blockingStub = ContactTracingGrpc.newBlockingStub(mChannel);
     }
 
-    public RegisterResult registerUser(String id, String publicKey, String password, ByteString sig) {
+    public RegisterResult registerUser(String id, String publicKey) {
         Log.i(GRPC_SERVICE_LOG, "Register user: " + id);
 
-        Register register = Register.newBuilder()
-                .setUserId(id)
-                .setPk(publicKey)
-                .setPassword(password)
-                .build();
-
         RegisterRequest request = RegisterRequest.newBuilder()
-                .setRegister(register)
-                .setSignature(sig)
+                .setPk(publicKey)
+                .setDeviceId(id)
                 .build();
 
         return blockingStub.register(request);

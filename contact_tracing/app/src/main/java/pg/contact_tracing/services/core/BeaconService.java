@@ -34,7 +34,8 @@ public class BeaconService extends Service {
 
     public static boolean isRunning;
 
-    private static final long SCAN_PERIOD_INTERVAL = 15000; // 15 sec
+//    private static final long SCAN_PERIOD_INTERVAL = 15000; // 15 sec
+    private static final long SCAN_PERIOD_INTERVAL = 5000; // 5 sec
     private static final int id = 1;
 
     private UserContactsManager userContactsManager;
@@ -52,7 +53,7 @@ public class BeaconService extends Service {
 
         try {
             userInformationsRepository = DI.resolve(UserInformationsRepository.class);
-            userID = makeToken(userInformationsRepository.getID());
+            userID = userInformationsRepository.getID();
         } catch (Exception e) {
             Log.e(BEACON_SERVICE_LOG, "Failed to resolve userInformation Repository: " + e);
         }
@@ -103,6 +104,7 @@ public class BeaconService extends Service {
         super.onDestroy();
         beaconTransmitter.stopAdvertising();
         beaconManager.stopRangingBeacons(region);
+        isRunning = false;
 
         Log.i(BEACON_SERVICE_LOG, "Beacon service destroyed");
     }
@@ -118,7 +120,7 @@ public class BeaconService extends Service {
                 .setId2("1")
                 .setId3("2")
                 .setManufacturer(appManufacturer)
-                .setTxPower(-59)
+                .setTxPower(-70)
                 .setDataFields(Collections.singletonList(0L)) // Remove this for beacon layouts without d: fields
                 .build();
 
@@ -162,7 +164,7 @@ public class BeaconService extends Service {
 
                     Log.i(BEACON_SERVICE_MONITOR_LOG, "didRangeBeaconsInRegion, beacon = " + beacon.toString());
 
-                    if (beacon.getDistance() <= 5.0) {
+                    if (beacon.getDistance() <= 2.0) {
                         Log.i(BEACON_SERVICE_MONITOR_LOG, "Very close beacon: " + beacon.getDistance());
                     } else {
                         Log.i(BEACON_SERVICE_MONITOR_LOG, "Far beacon, discard: " + beacon.getDistance());
@@ -179,19 +181,6 @@ public class BeaconService extends Service {
     private void saveBeacon(Beacon beacon) {
         Log.i(BEACON_SERVICE_MONITOR_LOG, "Save beacon received: " + beacon.getId1());
         AsyncTask.execute(() -> userContactsManager.saveBeacon(beacon, getApplicationContext()));
-    }
-
-    // AltBeacon token format: [8 HEX_NUMBERS]-[4 HEX_NUMBERS]-[4 HEX_NUMBERS]-[4 HEX_NUMBERS]-[12 HEX_NUMBERS]
-    // 16 bytes
-    // Example: "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6"
-    private String makeToken(String id) {
-        String token = id.toUpperCase();
-        token = token.substring(0, 8) + "-" + token.substring(8, 12) + "-"
-                + token.substring(12, 16) + "-" + token.substring(16, 20) + "-"
-                + token.substring(20, 32);
-
-        Log.i(BEACON_SERVICE_LOG, "User token created: " + token);
-        return token;
     }
 }
 

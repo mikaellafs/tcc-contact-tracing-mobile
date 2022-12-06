@@ -2,6 +2,7 @@ package pg.contact_tracing.datasource.sharedpreferences;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import pg.contact_tracing.models.LocalStorageKey;
 
@@ -13,7 +14,8 @@ public class SharedPreferencesStorage {
     }
 
     public String getValue(LocalStorageKey key) {
-        return storage.getString(key.toString(), "");
+        String value = storage.getString(key.toString(), "");
+        return value;
     }
 
     public void saveValue(LocalStorageKey key, String value) {

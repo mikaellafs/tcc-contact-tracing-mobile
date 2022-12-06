@@ -41,7 +41,7 @@ public class ContactAdapter {
         JSONObject contactJson = new JSONObject();
 
         try {
-            contactJson.put("token", contact.getToken());
+            contactJson.put("otherUser", contact.getToken());
             contactJson.put("firstContactTimestamp", contact.getFirstContactTimestamp());
             contactJson.put("lastContactTimestamp", contact.getLastContactTimestamp());
             contactJson.put("distance", contact.getDistance());

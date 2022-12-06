@@ -43,6 +43,8 @@ public class Contact {
         return distance;
     }
 
+    public void setDistance(double distance) { this.distance = distance; }
+
     public int getRSSI() {
         return RSSI;
     }

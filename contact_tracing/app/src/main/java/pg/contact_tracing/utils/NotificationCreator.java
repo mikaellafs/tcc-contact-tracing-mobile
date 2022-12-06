@@ -16,7 +16,8 @@ public class NotificationCreator {
     public static Notification foregroundServiceNotification = null;
 
     public Notification createNotification(Context context, String channelId, String channelName, String title, String subtitle, Integer icon) {
-        createNotificationChannel(context, channelId, channelName);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+            createNotificationChannel(context, channelId, channelName);
 
         Intent notificationIntent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context,
